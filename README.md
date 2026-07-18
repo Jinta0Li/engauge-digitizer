@@ -1,8 +1,8 @@
 # Engauge Digitizer
 
-Engauge Digitizer converts graph and map images into numerical data. This maintained fork provides tested Windows x64 builds and interface improvements based on the official Engauge Digitizer source code.
+Engauge Digitizer 是一款优秀的开源软件，用于从图表图像中提取数据点。然而，官方项目在较新版本中不再直接提供 Windows 平台的预编译安装包（仅提供源代码）。为了让普通用户和研究人员能够开箱即用，我建立了这个仓库，定期将最新源码编译为 Windows 可执行文件。
 
-Engauge Digitizer 可以把图表或地图图像转换为数值数据。本维护分支基于官方源代码，提供经过测试的 Windows x64 构建和界面改进。
+Engauge Digitizer is an excellent open-source tool for extracting data points from graphical images. However, the official project stopped providing pre-compiled Windows binaries for recent versions, offering only source code. This repository was created to help non-developer users by providing ready-to-use Windows installers compiled from the latest source.
 
 ## Download / 下载
 
