@@ -6,8 +6,8 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$FftwRoot,
 
-    [ValidatePattern('^\d+\.\d+\.\d+\.\d+$')]
-    [string]$Version = "12.9.1.2",
+    [ValidatePattern('^\d+\.\d+\.\d+$')]
+    [string]$Version = "12.10.0",
 
     [string]$BuildDirectory = "cmake-build\windows-msvc-release",
 
@@ -98,6 +98,7 @@ $fftwRootPath = (Resolve-Path $FftwRoot).Path
 $buildDirectoryPath = Get-AbsolutePath $BuildDirectory $repositoryRoot
 $stageDirectoryPath = Get-AbsolutePath $StageDirectory $repositoryRoot
 $distDirectoryPath = Join-Path $repositoryRoot "dist"
+$windowsFileVersion = "$Version.0"
 $portableArchive = Join-Path $distDirectoryPath `
     "Engauge-Digitizer-$Version-Multilingual-Windows-x64-Portable.zip"
 
@@ -350,6 +351,7 @@ try {
 
         Invoke-Checked $iscc @(
             "/DMyAppVersion=$Version",
+            "/DMyAppFileVersion=$windowsFileVersion",
             (Join-Path $repositoryRoot "dev\windows\engauge_qt6.iss")
         )
         $setupExecutable = Join-Path $distDirectoryPath `

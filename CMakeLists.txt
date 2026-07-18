@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21.1)
 
-project(EngaugeDigitizer VERSION 12.9.1.2 LANGUAGES CXX)
+project(EngaugeDigitizer VERSION 12.10.0 LANGUAGES CXX)
 
 include(CTest)
 include(GNUInstallDirs)
@@ -162,6 +162,10 @@ endif()
 
 if(WIN32)
   set(ENGAUGE_ICON_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src/img/digitizer.ico")
+  set(ENGAUGE_WINDOWS_VERSION_TWEAK "${PROJECT_VERSION_TWEAK}")
+  if(ENGAUGE_WINDOWS_VERSION_TWEAK STREQUAL "")
+    set(ENGAUGE_WINDOWS_VERSION_TWEAK 0)
+  endif()
   configure_file(cmake/Engauge.rc.in "${CMAKE_CURRENT_BINARY_DIR}/Engauge.rc" @ONLY)
   target_sources(Engauge PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/Engauge.rc")
 endif()

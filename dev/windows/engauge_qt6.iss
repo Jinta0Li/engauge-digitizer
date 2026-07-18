@@ -1,6 +1,9 @@
 #define MyAppName "Engauge Digitizer"
 #ifndef MyAppVersion
-#define MyAppVersion "12.9.1.2"
+#define MyAppVersion "12.10.0"
+#endif
+#ifndef MyAppFileVersion
+#define MyAppFileVersion "12.10.0.0"
 #endif
 #define MyAppPublisher "Engauge Digitizer Community Build"
 #define MyAppExeName "Engauge.exe"
@@ -27,7 +30,7 @@ PrivilegesRequired=admin
 PrivilegesRequiredOverridesAllowed=commandline
 ChangesAssociations=yes
 CloseApplications=yes
-VersionInfoVersion={#MyAppVersion}
+VersionInfoVersion={#MyAppFileVersion}
 VersionInfoCompany={#MyAppPublisher}
 VersionInfoDescription={#MyAppName} installer
 VersionInfoProductName={#MyAppName}
