@@ -24,7 +24,6 @@ void CreateMenus::create(MainWindow &mw)
 
   mw.m_menuFile = mw.menuBar()->addMenu(tr("&File"));
   mw.m_menuFile->addAction (mw.m_actionImport);
-  mw.m_menuFile->addAction (mw.m_actionImportAdvanced);
   mw.m_menuFile->addAction (mw.m_actionImportImageReplace);
   mw.m_menuFile->addAction (mw.m_actionOpen);
 #if !defined(OSX_DEBUG) && !defined(OSX_RELEASE)
@@ -55,7 +54,6 @@ void CreateMenus::create(MainWindow &mw)
   mw.m_menuEdit->addAction (mw.m_actionEditDelete);
   mw.m_menuEdit->insertSeparator (mw.m_actionEditPasteAsNew);
   mw.m_menuEdit->addAction (mw.m_actionEditPasteAsNew);
-  mw.m_menuEdit->addAction (mw.m_actionEditPasteAsNewAdvanced);
 
   mw.m_menuDigitize = mw.menuBar()->addMenu(tr("Digitize"));
   mw.m_menuDigitize->addAction (mw.m_actionDigitizeSelect);

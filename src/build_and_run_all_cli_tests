@@ -13,6 +13,7 @@ testsAvailable=( \
     TestCentipedeEndpoints \
     TestCorrelation  \
     TestCrc32 \
+    TestCurveProperties \
     TestExport \
     TestExportAlign \
     TestFitting \
@@ -20,6 +21,7 @@ testsAvailable=( \
     TestGraphCoords \
     TestGridLineLimiter \
     TestGuidelines \
+    TestImportCoordinateSetup \
     TestMatrix \
     TestProjectedPoint \
     TestSpline \

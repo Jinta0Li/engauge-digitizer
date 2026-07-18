@@ -136,8 +136,10 @@ void DlgSettingsSegments::createControls (QGridLayout *layout,
   m_cmbLineColor = new QComboBox;
   m_cmbLineColor->setWhatsThis (tr ("Select a color for the lines drawn along a segment"));
   populateColorComboWithTransparent (*m_cmbLineColor);
-  connect (m_cmbLineColor, SIGNAL (activated (const QString &)),
-           this, SLOT (slotLineColor (const QString &))); // activated() ignores code changes
+  connect (m_cmbLineColor,
+           &QComboBox::textActivated,
+           this,
+           &DlgSettingsSegments::slotLineColor); // textActivated() ignores code changes
   layout->addWidget (m_cmbLineColor, row++, 2);
 
   QLabel *labelInactiveOpacity = new QLabel(QString ("%1:").arg (tr ("Inactive opacity")));
@@ -163,8 +165,10 @@ void DlgSettingsSegments::createControls (QGridLayout *layout,
                                 QVariant (INACTIVE_OPACITY_224));
   m_cmbInactiveOpacity->addItem (inactiveOpacityEnumToQString (INACTIVE_OPACITY_256),
                                 QVariant (INACTIVE_OPACITY_256));
-  connect (m_cmbInactiveOpacity, SIGNAL (activated (const QString &)),
-           this, SLOT (slotInactiveOpacity (const QString &))); // activated() ignores code changes
+  connect (m_cmbInactiveOpacity,
+           &QComboBox::textActivated,
+           this,
+           &DlgSettingsSegments::slotInactiveOpacity); // textActivated() ignores code changes
   layout->addWidget (m_cmbInactiveOpacity, row++, 2);
 }
 

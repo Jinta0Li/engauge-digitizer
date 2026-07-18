@@ -23,6 +23,8 @@
 #include "CreateFacade.h"
 #include "Curve.h"
 #include "DataKey.h"
+#include "DigitAxis.xpm"
+#include "DigitAxis4.xpm"
 #include "DigitizeStateContext.h"
 #include "DlgAbout.h"
 #include "DlgErrorReportLocal.h"
@@ -100,6 +102,7 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QImageReader>
+#include <QIcon>
 #include <QKeyEvent>
 #include <QKeySequence>
 #include <qmath.h>
@@ -568,17 +571,9 @@ void MainWindow::fileImport (const QString &fileName,
   QString originalFileOld = m_originalFile;
   bool originalFileWasImported = m_originalFileWasImported;
 
-  m_originalFile = fileName; // Make this available for logging in case an error occurs during the load
-  m_originalFileWasImported = true;
-
-  if (importType == IMPORT_TYPE_ADVANCED) {
-
-    // Remove any existing points, axes checker(s) and such from the previous Document so they do not appear in setupAfterLoadNewDocument
-    // when previewing for IMAGE_TYPE_ADVANCED
-    slotFileClose();
-
-    // Restore the background just closed by slotFileClose. This is required so when the image is loaded for preview, it will appear
-    m_backgroundStateContext->setBackgroundImage(BACKGROUND_IMAGE_ORIGINAL);
+  if (importType != IMPORT_TYPE_COORDINATE_SETUP) {
+    m_originalFile = fileName; // Make this available for logging in case an error occurs during the load
+    m_originalFileWasImported = true;
   }
 
   QImage image;
@@ -657,6 +652,22 @@ void MainWindow::fileImport (const QString &fileName,
 
   } else {
 
+    if (importType == IMPORT_TYPE_COORDINATE_SETUP) {
+
+      // Keep the current document until the replacement image has been read successfully. This avoids losing the current
+      // workspace when an unreadable image was selected.
+      if (!closeCurrentDocument ()) {
+        m_originalFile = originalFileOld;
+        m_originalFileWasImported = originalFileWasImported;
+        return;
+      }
+
+      // Restore the background just closed above so the imported image is visible behind coordinate system setup.
+      m_backgroundStateContext->setBackgroundImage(BACKGROUND_IMAGE_ORIGINAL);
+      m_originalFile = fileName;
+      m_originalFileWasImported = true;
+    }
+
     loaded = loadImage (fileName,
                         image,
                         importType);
@@ -674,12 +685,10 @@ void MainWindow::fileImport (const QString &fileName,
     } else {
 
       // Failed
-      if (importType == IMPORT_TYPE_ADVANCED) {
+      if (importType == IMPORT_TYPE_COORDINATE_SETUP) {
 
-        // User cancelled after another file was imported so it could be previewed. In anticipation of the loading-for-preview,
-        // we closed the current Document at the top of this method so we cannot reload. So, the only option is to close again
-        // so the half-imported current Document is removed
-        slotFileClose();
+        // User canceled after the new image was shown as a preview. Remove the half-imported document.
+        closeCurrentDocument ();
 
       } else {
 
@@ -699,7 +708,7 @@ void MainWindow::fileImportWithPrompts (ImportType importType)
   // Skip maybeSave method for IMPORT_TYPE_REPLACE_IMAGE since open file dialog is enough to allow user to cancel the operation, and
   // since no information is lost in that case
   bool okToContinue = true;
-  if (importType != IMPORT_TYPE_IMAGE_REPLACE) {
+  if (importType == IMPORT_TYPE_SIMPLE) {
     okToContinue = maybeSave ();
   }
 
@@ -810,7 +819,7 @@ void MainWindow::filePaste (ImportType importType)
     return;
   }
 
-  if (!maybeSave ()) {
+  if (importType != IMPORT_TYPE_COORDINATE_SETUP && !maybeSave ()) {
     return;
   }
 
@@ -824,18 +833,23 @@ void MainWindow::filePaste (ImportType importType)
   bool originalFileWasImported = m_originalFileWasImported;
 
   QString fileName ("clipboard");
-  m_originalFile = fileName; // Make this available for logging in case an error occurs during the load
-  m_originalFileWasImported = true;
 
-  if (importType == IMPORT_TYPE_ADVANCED) {
+  if (importType == IMPORT_TYPE_COORDINATE_SETUP) {
 
     // Remove any existing points, axes checker(s) and such from the previous Document so they do not appear in setupAfterLoadNewDocument
-    // when previewing for IMAGE_TYPE_ADVANCED
-    slotFileClose();
+    // when previewing for coordinate system setup
+    if (!closeCurrentDocument ()) {
+      m_originalFile = originalFileOld;
+      m_originalFileWasImported = originalFileWasImported;
+      return;
+    }
 
-    // Restore the background just closed by slotFileClose. This is required so when the image is loaded for preview, it will appear
+    // Restore the background just closed above. This is required so the image appears behind coordinate system setup.
     m_backgroundStateContext->setBackgroundImage(BACKGROUND_IMAGE_ORIGINAL);
   }
+
+  m_originalFile = fileName; // Make this available for logging in case an error occurs during the load
+  m_originalFileWasImported = true;
 
   bool loaded = false;
   if (!loaded) {
@@ -860,12 +874,10 @@ void MainWindow::filePaste (ImportType importType)
     if (!loaded) {
 
       // Failed
-      if (importType == IMPORT_TYPE_ADVANCED) {
+      if (importType == IMPORT_TYPE_COORDINATE_SETUP) {
 
-        // User cancelled after another file was imported so it could be previewed. In anticipation of the loading-for-preview,
-        // we closed the current Document at the top of this method so we cannot reload. So, the only option is to close again
-        // so the half-imported current Document is removed
-        slotFileClose();
+        // User canceled after the new image was shown as a preview. Remove the half-imported document.
+        closeCurrentDocument ();
 
       } else {
 
@@ -1188,6 +1200,28 @@ void MainWindow::loadGuidelinesFromCmdMediator ()
 
   m_guidelines.setModelGuideline (m_cmdMediator->document().modelCoords().coordsType(),
                                   m_cmdMediator->document().modelGuideline());
+}
+
+void MainWindow::loadImageWithCoordinateSetup (const QString &fileName,
+                                               const QImage &image)
+{
+  LOG4CPP_INFO_S ((*mainCat)) << "MainWindow::loadImageWithCoordinateSetup"
+                              << " fileName=" << fileName.toLatin1 ().data ();
+
+  if (image.isNull () || !closeCurrentDocument ()) {
+    return;
+  }
+
+  m_backgroundStateContext->setBackgroundImage (BACKGROUND_IMAGE_ORIGINAL);
+  m_originalFile = fileName.isEmpty () ? QString ("dragged image") : fileName;
+  m_originalFileWasImported = true;
+
+  if (!loadImage (fileName,
+                  image,
+                  IMPORT_TYPE_COORDINATE_SETUP)) {
+    // Coordinate setup was canceled after the image preview was created.
+    closeCurrentDocument ();
+  }
 }
 
 bool MainWindow::loadImage (const QString &fileName,
@@ -2019,7 +2053,7 @@ bool MainWindow::setupAfterLoadNewDocument (const QString &fileName,
 
   // Image is visible now so the user can refer to it when we ask for the number of coordinate systems. Note that the Document
   // may already have multiple CoordSystem if user loaded a file that had multiple CoordSystem entries
-  if (importType == IMPORT_TYPE_ADVANCED) {
+  if (importType == IMPORT_TYPE_COORDINATE_SETUP) {
 
     applyZoomFactorAfterLoad(); // Apply the currently selected zoom factor
 
@@ -2139,6 +2173,14 @@ void MainWindow::showEvent (QShowEvent *event)
 void MainWindow::showTemporaryMessage (const QString &temporaryMessage)
 {
   m_statusBar->showTemporaryMessage (temporaryMessage);
+}
+
+void MainWindow::showGridLines ()
+{
+  LOG4CPP_INFO_S ((*mainCat)) << "MainWindow::showGridLines";
+
+  m_actionViewGridLines->setChecked (true);
+  updateGridLines ();
 }
 
 void MainWindow::slotBtnPrintAll ()
@@ -2475,7 +2517,6 @@ void MainWindow::slotEditMenu ()
 
   const bool hasImportableImage = clipboardHasImportableImage ();
   m_actionEditPasteAsNew->setEnabled (hasImportableImage);
-  m_actionEditPasteAsNewAdvanced->setEnabled (hasImportableImage);
   m_actionEditPaste->setEnabled (m_digitizeStateContext->canPaste (m_transformation,
                                                                    m_view->size ()) ||
                                  hasImportableImage);
@@ -2487,7 +2528,7 @@ void MainWindow::slotEditPaste ()
 
   if (!m_digitizeStateContext->canPaste (m_transformation,
                                          m_view->size ())) {
-    filePaste (IMPORT_TYPE_SIMPLE);
+    filePaste (IMPORT_TYPE_COORDINATE_SETUP);
     return;
   }
 
@@ -2512,19 +2553,16 @@ void MainWindow::slotEditPasteAsNew ()
 {
   LOG4CPP_INFO_S ((*mainCat)) << "MainWindow::slotEditPasteAsNew";
 
-  filePaste (IMPORT_TYPE_SIMPLE);
+  filePaste (IMPORT_TYPE_COORDINATE_SETUP);
 }
 
-void MainWindow::slotEditPasteAsNewAdvanced ()
+bool MainWindow::closeCurrentDocument ()
 {
-  LOG4CPP_INFO_S ((*mainCat)) << "MainWindow::slotEditPasteAsNewAdvanced";
+  LOG4CPP_INFO_S ((*mainCat)) << "MainWindow::closeCurrentDocument";
 
-  filePaste (IMPORT_TYPE_ADVANCED);
-}
-
-void MainWindow::slotFileClose()
-{
-  LOG4CPP_INFO_S ((*mainCat)) << "MainWindow::slotFileClose";
+  if (m_cmdMediator == nullptr) {
+    return true;
+  }
 
   if (maybeSave ()) {
 
@@ -2574,7 +2612,18 @@ void MainWindow::slotFileClose()
     m_gridLines.clear();
     m_guidelines.clear();    
     updateControls();
+
+    return true;
   }
+
+  return false;
+}
+
+void MainWindow::slotFileClose()
+{
+  LOG4CPP_INFO_S ((*mainCat)) << "MainWindow::slotFileClose";
+
+  closeCurrentDocument ();
 }
 
 void MainWindow::slotFileExport ()
@@ -2626,24 +2675,15 @@ void MainWindow::slotFileImport ()
 {
   LOG4CPP_INFO_S ((*mainCat)) << "MainWindow::slotFileImport";
 
-  fileImportWithPrompts (IMPORT_TYPE_SIMPLE);
-}
-
-void MainWindow::slotFileImportAdvanced ()
-{
-  LOG4CPP_INFO_S ((*mainCat)) << "MainWindow::slotFileImportAdvanced";
-
-  fileImportWithPrompts (IMPORT_TYPE_ADVANCED);
+  fileImportWithPrompts (IMPORT_TYPE_COORDINATE_SETUP);
 }
 
 void MainWindow::slotFileImportDraggedImage(QImage image)
 {  
   LOG4CPP_INFO_S ((*mainCat)) << "MainWindow::slotFileImportDraggedImage";
 
-  // No need to check return value from loadImage since there are no prompts that give the user a chance to cancel
-  loadImage ("",
-             image,
-             IMPORT_TYPE_SIMPLE);
+  loadImageWithCoordinateSetup ("",
+                                image);
 }
 
 void MainWindow::slotFileImportDraggedImageUrl(QUrl url)
@@ -2660,10 +2700,8 @@ void MainWindow::slotFileImportImage(QString fileName, QImage image)
 {
   LOG4CPP_INFO_S ((*mainCat)) << "MainWindow::slotFileImportImage fileName=" << fileName.toLatin1 ().data ();
 
-  // No need to check return value from loadImage since there are no prompts that give the user a chance to cancel
-  loadImage (fileName,
-             image,
-             IMPORT_TYPE_SIMPLE);
+  loadImageWithCoordinateSetup (fileName,
+                                image);
 }
 
 void MainWindow::slotFileImportImageReplace ()
@@ -3153,7 +3191,8 @@ void MainWindow::slotTimeoutChecklistGuideWizard ()
     
   // Show wizard
   ChecklistGuideWizard *wizard = new ChecklistGuideWizard (*this,
-                                                           m_cmdMediator->document().coordSystemCount());
+                                                           m_cmdMediator->document().coordSystemCount(),
+                                                           m_cmdMediator->document().documentAxesPointsRequired());
   if (wizard->exec() == QDialog::Accepted) {
     
     for (CoordSystemIndex coordSystemIndex = 0; coordSystemIndex < m_cmdMediator->document().coordSystemCount(); coordSystemIndex++) {
@@ -3730,8 +3769,16 @@ void MainWindow::updateControls ()
   m_actionEditDelete->setEnabled (!tableFittingIsActive &&
                                   !tableGeometryIsActive &&
                                   m_scene->selectedItems().count () > 0);
-  // m_actionEditPasteAsNew and m_actionEditPasteAsNewAdvanced are updated when m_menuEdit is about to be shown
+  // m_actionEditPasteAsNew is updated when m_menuEdit is about to be shown
 
+  // Keep the toolbar icon consistent with the coordinate definition stored in the active document. Before a document is
+  // loaded, show the four-point icon because four points are the default for new imports.
+  if (m_cmdMediator != nullptr &&
+      m_cmdMediator->document().documentAxesPointsRequired () == DOCUMENT_AXES_POINTS_REQUIRED_3) {
+    m_actionDigitizeAxis->setIcon (QIcon (QPixmap (DigitAxis_xpm)));
+  } else {
+    m_actionDigitizeAxis->setIcon (QIcon (QPixmap (DigitAxis4_xpm)));
+  }
   m_actionDigitizeAxis->setEnabled (modeGraph ());
   m_actionDigitizeScale->setEnabled (modeMap ());
   m_actionDigitizeCurve->setEnabled (!m_currentFile.isEmpty ());

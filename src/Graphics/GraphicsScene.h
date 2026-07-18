@@ -62,7 +62,7 @@ public:
                               const QPointF &posScreen,
                               GeometryWindow *geometryWindow);
 
-  /// Hide all graphics items, except background image, in preparation for preview during IMPORT_TYPE_ADVANCED
+  /// Hide all graphics items, except the background image, while coordinate system setup previews a new image
   void hideAllItemsExceptImage();
 
   /// Return a list of identifiers for the points that have moved since the last call to resetPositionHasChanged.

@@ -182,7 +182,7 @@ void DlgEditPointAxis::createHints (QVBoxLayout *layoutOuter,
   QLineEdit *editNumberCoordinates = new QLineEdit;
   editNumberCoordinates->setWhatsThis (tr ("Three axis points with two coordinates each are normally used. "
                                            "If each axis point has only one known coordinate, then start over "
-                                           "with File / Import (Advanced) / 4 Axis Points."));
+                                           "by importing the image again and selecting 4 Axis Points in Coordinate System setup."));
   editNumberCoordinates->setReadOnly (true);
   editNumberCoordinates->setText (documentAxesPointsRequired == DOCUMENT_AXES_POINTS_REQUIRED_3 ?
                                     "2" :

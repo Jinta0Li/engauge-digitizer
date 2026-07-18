@@ -22,9 +22,11 @@
 #include <QVBoxLayout>
 
 ChecklistGuideWizard::ChecklistGuideWizard (MainWindow &mainWindow,
-                                            unsigned int numberCoordSystem) :
+                                            unsigned int numberCoordSystem,
+                                            DocumentAxesPointsRequired documentAxesPointsRequired) :
   QWizard (&mainWindow),
   m_mainWindow (mainWindow),
+  m_documentAxesPointsRequired (documentAxesPointsRequired),
   m_dialogName (tr ("Checklist Guide"))
 {
   // Note this window is positioned in showEvent
@@ -124,35 +126,50 @@ QString ChecklistGuideWizard::templateHtml (CoordSystemIndex coordSystemIndex) c
   // Insert additional space between successive list items, using stylesheet
   str << "<style type='text/css'>li { margin-top: 10px 0; }</style>";
 
+  int requiredAxisPointCount = (m_documentAxesPointsRequired == DOCUMENT_AXES_POINTS_REQUIRED_4 ? 4 : 3);
+
   str << "<p>" << tr ("Follow this checklist of steps to digitize your image. Each step will show a check when it has been completed.");
-  str << "<p>" << tr ("The coordinates are defined by creating axis points") << ":</p>\n";
-  str << "<p>" << TAG_ANCHOR_AXIS_1 << "&nbsp;" << tr ("Add first of three axis points.") << " " << TAG_AHREF_AXIS_1 << "</p>\n";
+  str << "<p>" << tr ("The coordinates are defined by creating %1 axis points").arg (requiredAxisPointCount) << ":</p>\n";
+  str << "<p>" << TAG_ANCHOR_AXIS_1 << "&nbsp;" << tr ("Add axis point %1 of %2.").arg (1).arg (requiredAxisPointCount) << " " << TAG_AHREF_AXIS_1 << "</p>\n";
   str << TAG_DIV_AXIS_START_1;
   str << "<ul>\n";
   str << "<li>" << tr ("Click on") << " <img src="":/engauge/img/16-DigitAxis""> " << tr ("for Axis Points mode") << "</li>\n";
   str << "<li>" << tr ("Click on an axis tick mark, or intersection of two grid lines, with labeled coordinates") << "</li>\n";
-  str << "<li>" << tr ("Enter the coordinates of the axis point") << "</li>\n";
+  str << "<li>" << tr ("Enter the requested coordinate value or values") << "</li>\n";
   str << "<li>" << tr ("Click on Ok") << "</li>\n";
   str << "</ul>\n";
   str << TAG_DIV_AXIS_END_1;
-  str << "<p>" << TAG_ANCHOR_AXIS_2 << "&nbsp;" << tr ("Add second of three axis points.") << " " << TAG_AHREF_AXIS_2 << "</p>\n";
+  str << "<p>" << TAG_ANCHOR_AXIS_2 << "&nbsp;" << tr ("Add axis point %1 of %2.").arg (2).arg (requiredAxisPointCount) << " " << TAG_AHREF_AXIS_2 << "</p>\n";
   str << TAG_DIV_AXIS_START_2;
   str << "<ul>\n";
   str << "<li>" << tr ("Click on") << " <img src="":/engauge/img/16-DigitAxis""> " << tr ("for Axis Points mode") << "</li>\n";
   str << "<li>" << tr ("Click on an axis tick mark, or intersection of two grid lines, with labeled coordinates, away from the other axis point") << "</li>\n";
-  str << "<li>" << tr ("Enter the coordinates of the axis point") << "</li>\n";
+  str << "<li>" << tr ("Enter the requested coordinate value or values") << "</li>\n";
   str << "<li>" << tr ("Click on Ok") << "</li>\n";
   str << "</ul>\n";
   str << TAG_DIV_AXIS_END_2;
-  str << "<p>" << TAG_ANCHOR_AXIS_3 << "&nbsp;" << tr ("Add third of three axis points.") << " " << TAG_AHREF_AXIS_3 << "</p>\n";
+  str << "<p>" << TAG_ANCHOR_AXIS_3 << "&nbsp;" << tr ("Add axis point %1 of %2.").arg (3).arg (requiredAxisPointCount) << " " << TAG_AHREF_AXIS_3 << "</p>\n";
   str << TAG_DIV_AXIS_START_3;
   str << "<ul>\n";
   str << "<li>" << tr ("Click on") << " <img src="":/engauge/img/16-DigitAxis""> " << tr ("for Axis Points mode") << "</li>\n";
   str << "<li>" << tr ("Click on an axis tick mark, or intersection of two grid lines, with labeled coordinates, away from the other axis points") << "</li>\n";
-  str << "<li>" << tr ("Enter the coordinates of the axis point") << "</li>\n";
+  str << "<li>" << tr ("Enter the requested coordinate value or values") << "</li>\n";
   str << "<li>" << tr ("Click on Ok") << "</li>\n";
   str << "</ul>\n";
   str << TAG_DIV_AXIS_END_3;
+
+  if (requiredAxisPointCount == 4) {
+
+    str << "<p>" << TAG_ANCHOR_AXIS_4 << "&nbsp;" << tr ("Add axis point %1 of %2.").arg (4).arg (requiredAxisPointCount) << " " << TAG_AHREF_AXIS_4 << "</p>\n";
+    str << TAG_DIV_AXIS_START_4;
+    str << "<ul>\n";
+    str << "<li>" << tr ("Click on") << " <img src="":/engauge/img/16-DigitAxis""> " << tr ("for Axis Points mode") << "</li>\n";
+    str << "<li>" << tr ("Click on an axis tick mark, or intersection of two grid lines, with labeled coordinates, away from the other axis points") << "</li>\n";
+    str << "<li>" << tr ("Enter the requested coordinate value or values") << "</li>\n";
+    str << "<li>" << tr ("Click on Ok") << "</li>\n";
+    str << "</ul>\n";
+    str << TAG_DIV_AXIS_END_4;
+  }
 
   str << "<p>&nbsp;</p>\n";
   str << "<p>" << tr ("Points are digitized along each curve") << ":</p>\n";

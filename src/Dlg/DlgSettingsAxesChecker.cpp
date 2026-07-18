@@ -91,7 +91,10 @@ void DlgSettingsAxesChecker::createControls (QGridLayout *layout,
   }
   m_cmbSeconds->setWhatsThis (tr ("Number of seconds axes checker is displayed after axes points are changed"));
   layoutLifetime->addWidget (m_cmbSeconds, rowLifetime++, 1);
-  connect (m_cmbSeconds, SIGNAL (activated (const QString &)), this, SLOT (slotSeconds (const QString &))); // activated() ignores code changes
+  connect (m_cmbSeconds,
+           &QComboBox::textActivated,
+           this,
+           &DlgSettingsAxesChecker::slotSeconds); // textActivated() ignores code changes
 
   m_btnForever = new QRadioButton (tr ("Show always"), groupBox);
   m_btnForever->setWhatsThis (tr ("Always show axes checker."));
@@ -109,7 +112,10 @@ void DlgSettingsAxesChecker::createControls (QGridLayout *layout,
   m_cmbLineColor = new QComboBox;
   m_cmbLineColor->setWhatsThis (tr ("Select a color for the highlight lines drawn at each axis point"));
   populateColorComboWithoutTransparent (*m_cmbLineColor);
-  connect (m_cmbLineColor, SIGNAL (activated (const QString &)), this, SLOT (slotLineColor (const QString &))); // activated() ignores code changes
+  connect (m_cmbLineColor,
+           &QComboBox::textActivated,
+           this,
+           &DlgSettingsAxesChecker::slotLineColor); // textActivated() ignores code changes
   layout->addWidget (m_cmbLineColor, row++, 2);
 }
 

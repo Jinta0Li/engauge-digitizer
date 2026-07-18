@@ -103,7 +103,10 @@ void DlgSettingsPointMatch::createControls (QGridLayout *layout,
   m_cmbAcceptedPointColor = new QComboBox;
   m_cmbAcceptedPointColor->setWhatsThis (tr ("Select a color for matched points that are accepted"));
   populateColorComboWithTransparent (*m_cmbAcceptedPointColor);
-  connect (m_cmbAcceptedPointColor, SIGNAL (activated (const QString &)), this, SLOT (slotAcceptedPointColor (const QString &))); // activated() ignores code changes
+  connect (m_cmbAcceptedPointColor,
+           &QComboBox::textActivated,
+           this,
+           &DlgSettingsPointMatch::slotAcceptedPointColor); // textActivated() ignores code changes
   layout->addWidget (m_cmbAcceptedPointColor, row++, 2);
 
   QLabel *labelRejectedPointColor = new QLabel (QString ("%1:").arg (tr ("Rejected point color")));
@@ -112,7 +115,10 @@ void DlgSettingsPointMatch::createControls (QGridLayout *layout,
   m_cmbRejectedPointColor = new QComboBox;
   m_cmbRejectedPointColor->setWhatsThis (tr ("Select a color for matched points that are rejected"));
   populateColorComboWithTransparent (*m_cmbRejectedPointColor);
-  connect (m_cmbRejectedPointColor, SIGNAL (activated (const QString &)), this, SLOT (slotRejectedPointColor (const QString &))); // activated() ignores code changes
+  connect (m_cmbRejectedPointColor,
+           &QComboBox::textActivated,
+           this,
+           &DlgSettingsPointMatch::slotRejectedPointColor); // textActivated() ignores code changes
   layout->addWidget (m_cmbRejectedPointColor, row++, 2);
 
   QLabel *labelCandidatePointColor = new QLabel (QString ("%1:").arg (tr ("Candidate point color")));
@@ -121,7 +127,10 @@ void DlgSettingsPointMatch::createControls (QGridLayout *layout,
   m_cmbCandidatePointColor = new QComboBox;
   m_cmbCandidatePointColor->setWhatsThis (tr ("Select a color for the point being decided upon"));
   populateColorComboWithTransparent (*m_cmbCandidatePointColor);
-  connect (m_cmbCandidatePointColor, SIGNAL (activated (const QString &)), this, SLOT (slotCandidatePointColor (const QString &))); // activated() ignores code changes
+  connect (m_cmbCandidatePointColor,
+           &QComboBox::textActivated,
+           this,
+           &DlgSettingsPointMatch::slotCandidatePointColor); // textActivated() ignores code changes
   layout->addWidget (m_cmbCandidatePointColor, row++, 2);
 }
 

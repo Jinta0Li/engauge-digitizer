@@ -8,6 +8,7 @@
 #define CHECKLIST_GUIDE_WIZARD_H
 
 #include "CoordSystemIndex.h"
+#include "DocumentAxesPointsRequired.h"
 #include <QList>
 #include <QStringList>
 #include <QWizard>
@@ -27,7 +28,8 @@ class ChecklistGuideWizard : public QWizard
  public:
   /// Single constructor
   ChecklistGuideWizard(MainWindow &mainWindow,
-                       unsigned int numberCoordSystem);
+                       unsigned int numberCoordSystem,
+                       DocumentAxesPointsRequired documentAxesPointsRequired);
 
   /// Curve names to be placed into Document
   QStringList curveNames(CoordSystemIndex coordSystemIndex) const;
@@ -48,6 +50,7 @@ class ChecklistGuideWizard : public QWizard
   QString templateHtmlToAdjustColorFilterSettings () const;
 
   MainWindow &m_mainWindow;
+  DocumentAxesPointsRequired m_documentAxesPointsRequired;
 
   QPushButton *m_btnCancel;
   QPushButton *m_btnOk;

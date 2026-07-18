@@ -228,14 +228,20 @@ void DlgSettingsCoords::createDateTime (QGridLayout *layout,
   m_cmbDate->setWhatsThis (tr ("Date format to be used for date values, and date portion of mixed date/time values, "
                                "during input and output.\n\n"
                                "Setting the format to an empty value results in just the time portion appearing in output."));
-  connect (m_cmbDate, SIGNAL (activated (const QString &)), this, SLOT (slotDate (const QString &)));
+  connect (m_cmbDate,
+           &QComboBox::textActivated,
+           this,
+           &DlgSettingsCoords::slotDate);
   layoutCombos->addWidget (m_cmbDate);
 
   m_cmbTime = new QComboBox;
   m_cmbTime->setWhatsThis (tr ("Time format to be used for time values, and time portion of mixed date/time values, "
                                "during input and output.\n\n"
                                "Setting the format to an empty value results in just the date portion appearing in output."));
-  connect (m_cmbTime, SIGNAL (activated (const QString &)), this, SLOT (slotTime (const QString &)));
+  connect (m_cmbTime,
+           &QComboBox::textActivated,
+           this,
+           &DlgSettingsCoords::slotTime);
   layoutCombos->addWidget (m_cmbTime);
 }
 
@@ -301,7 +307,10 @@ void DlgSettingsCoords::createGroupXTheta (QGridLayout *layout,
   layoutXTheta->addWidget (labelThetaUnits, rowGroup++, COLUMN_0);
 
   m_cmbXThetaUnits = new QComboBox;
-  connect (m_cmbXThetaUnits, SIGNAL (activated (const QString &)), this, SLOT (slotUnitsXTheta(const QString &))); // activated() ignores code changes
+  connect (m_cmbXThetaUnits,
+           &QComboBox::textActivated,
+           this,
+           &DlgSettingsCoords::slotUnitsXTheta); // textActivated() ignores code changes
   layoutXTheta->addWidget (m_cmbXThetaUnits, rowGroup++, COLUMN_0, 1, 2);
 }
 
@@ -346,7 +355,10 @@ void DlgSettingsCoords::createGroupYRadius (QGridLayout *layout,
   layoutYRadius->addWidget (labelUnits, rowGroup++, COLUMN_0);
   
   m_cmbYRadiusUnits = new QComboBox;
-  connect (m_cmbYRadiusUnits, SIGNAL (activated (const QString &)), this, SLOT (slotUnitsYRadius(const QString &))); // activated() ignores code changes
+  connect (m_cmbYRadiusUnits,
+           &QComboBox::textActivated,
+           this,
+           &DlgSettingsCoords::slotUnitsYRadius); // textActivated() ignores code changes
   layoutYRadius->addWidget (m_cmbYRadiusUnits, rowGroup++, COLUMN_0, 1, 2);
 }
 

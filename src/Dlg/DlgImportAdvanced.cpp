@@ -36,6 +36,11 @@ void DlgImportAdvanced::createOptionalSaveDefault (QHBoxLayout * /* layout */)
   LOG4CPP_INFO_S ((*mainCat)) << "DlgImportAdvanced::createOptionalSaveDefault";
 }
 
+DocumentAxesPointsRequired DlgImportAdvanced::defaultDocumentAxesPointsRequired ()
+{
+  return DOCUMENT_AXES_POINTS_REQUIRED_4;
+}
+
 QWidget *DlgImportAdvanced::createSubPanel ()
 {
   LOG4CPP_INFO_S ((*mainCat)) << "DlgImportAdvanced::createSubPanel";
@@ -60,29 +65,14 @@ QWidget *DlgImportAdvanced::createSubPanel ()
   connect (m_spinCoordSystemCount, SIGNAL (valueChanged (const QString &)), this, SLOT (slotCoordSystemCount (const QString &)));
   layout->addWidget (m_spinCoordSystemCount, row++, 2);
 
-  // Axes point count
+  // Coordinate definition method. Four points are first and selected by
+  // default because they also work when the two axis intersection values are
+  // unknown or outside the image.
   QLabel *labelPointCount = new QLabel (QString ("%1:").arg (tr ("Graph Coordinates Definition")));
   layout->addWidget (labelPointCount, row, 1);
 
-  m_btnAxesPointCount2 = new QRadioButton (tr ("1 scale bar - Used for maps with a scale bar defining the map scale"));
-  m_btnAxesPointCount2->setWhatsThis (tr ("The two endpoints of the scale bar will define the scale of a map. The scale bar can "
-                                          "edited to set its length.\n\n"
-                                          "This setting is used when importing a map that has only a scale bar "
-                                          "to define distance, rather than a graph with axes that define two coordinates."));
-  connect (m_btnAxesPointCount2, SIGNAL (toggled (bool)), this, SLOT (slotAxesPointCount (bool)));
-  layout->addWidget (m_btnAxesPointCount2, row++, 2);
-
-  m_btnAxesPointCount3 = new QRadioButton (tr ("3 axis points - Used for graphs with both coordinates defined on each axis"));
-  m_btnAxesPointCount3->setChecked (true); // This is the traditional setting, and so is used as the default
-  m_btnAxesPointCount3->setWhatsThis (tr ("Three axes points will define the coordinate system. Each will have both "
-                                          "x and y coordinates.\n\n"
-                                          "This setting is always used when importing images in non-advanced mode.\n\n"
-                                          "In total, there will be three points as (x1,y1), (x2,y2) "
-                                          "and (x3,y3)."));
-  connect (m_btnAxesPointCount3, SIGNAL (toggled (bool)), this, SLOT (slotAxesPointCount (bool)));
-  layout->addWidget (m_btnAxesPointCount3, row++, 2);
-
   m_btnAxesPointCount4 = new QRadioButton (tr ("4 axis points - Used for graphs with only one coordinate defined on each axis"));
+  m_btnAxesPointCount4->setChecked (defaultDocumentAxesPointsRequired () == DOCUMENT_AXES_POINTS_REQUIRED_4);
   m_btnAxesPointCount4->setWhatsThis (tr ("Four axes points will define the coordinate system. Each will have a single "
                                           "x or y coordinate.\n\n"
                                           "This setting is required when the x coordinate of the y axis is unknown, and/or "
@@ -91,6 +81,22 @@ QWidget *DlgImportAdvanced::createSubPanel ()
                                           "(x2), and two points on the y axis as (y1) and (y2)."));
   connect (m_btnAxesPointCount4, SIGNAL (toggled (bool)), this, SLOT (slotAxesPointCount (bool)));
   layout->addWidget (m_btnAxesPointCount4, row++, 2);
+
+  m_btnAxesPointCount3 = new QRadioButton (tr ("3 axis points - Used for graphs with both coordinates defined on each axis"));
+  m_btnAxesPointCount3->setWhatsThis (tr ("Three axes points will define the coordinate system. Each will have both "
+                                          "x and y coordinates.\n\n"
+                                          "In total, there will be three points as (x1,y1), (x2,y2) "
+                                          "and (x3,y3)."));
+  connect (m_btnAxesPointCount3, SIGNAL (toggled (bool)), this, SLOT (slotAxesPointCount (bool)));
+  layout->addWidget (m_btnAxesPointCount3, row++, 2);
+
+  m_btnAxesPointCount2 = new QRadioButton (tr ("1 scale bar - Used for maps with a scale bar defining the map scale"));
+  m_btnAxesPointCount2->setWhatsThis (tr ("The two endpoints of the scale bar will define the scale of a map. The scale bar can "
+                                          "edited to set its length.\n\n"
+                                          "This setting is used when importing a map that has only a scale bar "
+                                          "to define distance, rather than a graph with axes that define two coordinates."));
+  connect (m_btnAxesPointCount2, SIGNAL (toggled (bool)), this, SLOT (slotAxesPointCount (bool)));
+  layout->addWidget (m_btnAxesPointCount2, row++, 2);
 
   return subPanel;
 }

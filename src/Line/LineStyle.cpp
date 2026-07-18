@@ -19,7 +19,7 @@
 const ColorPalette DEFAULT_LINE_COLOR_AXES = COLOR_PALETTE_TRANSPARENT; // Same default color as used for PointStyle axes curve default
 const ColorPalette DEFAULT_LINE_COLOR_GRAPH = COLOR_PALETTE_BLUE;       // Same default color as used for PointStyle axes curve default
 const CurveConnectAs DEFAULT_LINE_CONNECT_AS_AXES = CONNECT_SKIP_FOR_AXIS_CURVE;
-const CurveConnectAs DEFAULT_LINE_CONNECT_AS_GRAPH = CONNECT_AS_FUNCTION_SMOOTH;
+const CurveConnectAs DEFAULT_LINE_CONNECT_AS_GRAPH = CONNECT_AS_RELATION_STRAIGHT;
 const int DEFAULT_LINE_WIDTH_AXES = 0;
 const int DEFAULT_LINE_WIDTH_GRAPH = 1;
 

@@ -126,6 +126,7 @@ QString ChecklistGuideBrowser::processAhrefs (const QString &htmlBefore)
   ahref (html, NAME_AXIS1);
   ahref (html, NAME_AXIS2);
   ahref (html, NAME_AXIS3);
+  ahref (html, NAME_AXIS4);
 
   // Curves
   QStringList::const_iterator itr;
@@ -152,6 +153,7 @@ QString ChecklistGuideBrowser::processCheckboxes (const QString &htmlBefore)
   check (html, NAME_AXIS1, m_checkedTags.contains (NAME_AXIS1));
   check (html, NAME_AXIS2, m_checkedTags.contains (NAME_AXIS2));
   check (html, NAME_AXIS3, m_checkedTags.contains (NAME_AXIS3));
+  check (html, NAME_AXIS4, m_checkedTags.contains (NAME_AXIS4));
 
   // Curves
   QStringList::const_iterator itr;
@@ -183,6 +185,7 @@ QString ChecklistGuideBrowser::processDivs (const QString &htmlBefore)
   divHide (html, NAME_AXIS1);
   divHide (html, NAME_AXIS2);
   divHide (html, NAME_AXIS3);
+  divHide (html, NAME_AXIS4);
 
   // Curve name tags
   QStringList::const_iterator itr;
@@ -227,6 +230,10 @@ void ChecklistGuideBrowser::repopulateCheckedTags (const CmdMediator &cmdMediato
 
   if (cmdMediator.document().curveAxes().numPoints() > 2) {
     m_checkedTags [NAME_AXIS3] = true;
+  }
+
+  if (cmdMediator.document().curveAxes().numPoints() > 3) {
+    m_checkedTags [NAME_AXIS4] = true;
   }
 
   // Curves

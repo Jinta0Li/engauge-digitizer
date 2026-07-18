@@ -88,7 +88,10 @@ void DlgSettingsGridDisplay::createDisplayCommon (QGridLayout *layout, int &row)
   m_cmbColor = new QComboBox;
   m_cmbColor->setWhatsThis (tr ("Select a color for the lines"));
   populateColorComboWithoutTransparent (*m_cmbColor);
-  connect (m_cmbColor, SIGNAL (activated (const QString &)), this, SLOT (slotColor (const QString &))); // activated() ignores code changes
+  connect (m_cmbColor,
+           &QComboBox::textActivated,
+           this,
+           &DlgSettingsGridDisplay::slotColor); // textActivated() ignores code changes
   layoutCommon->addWidget (m_cmbColor, rowCommon++, 2);
 
   QLabel *labelLineWidth = new QLabel (QString ("%1:").arg (tr ("Line width")));
@@ -133,7 +136,10 @@ void DlgSettingsGridDisplay::createDisplayGridLinesX (QGridLayout *layout, int &
                          QVariant (GRID_COORD_DISABLE_STEP));
   m_cmbDisableX->addItem(gridCoordDisableToString (GRID_COORD_DISABLE_STOP),
                          QVariant (GRID_COORD_DISABLE_STOP));
-  connect (m_cmbDisableX, SIGNAL (activated (const QString &)), this, SLOT (slotDisableX (const QString &))); // activated() ignores code changes
+  connect (m_cmbDisableX,
+           &QComboBox::textActivated,
+           this,
+           &DlgSettingsGridDisplay::slotDisableX); // textActivated() ignores code changes
   layoutGroup->addWidget (m_cmbDisableX, 0, 1);
 
   QLabel *labelCount = new QLabel (QString ("%1:").arg (tr ("Count")));
@@ -209,7 +215,10 @@ void DlgSettingsGridDisplay::createDisplayGridLinesY (QGridLayout *layout, int &
                          QVariant (GRID_COORD_DISABLE_STEP));
   m_cmbDisableY->addItem(gridCoordDisableToString (GRID_COORD_DISABLE_STOP),
                          QVariant (GRID_COORD_DISABLE_STOP));
-  connect (m_cmbDisableY, SIGNAL (activated (const QString &)), this, SLOT (slotDisableY (const QString &))); // activated() ignores code changes
+  connect (m_cmbDisableY,
+           &QComboBox::textActivated,
+           this,
+           &DlgSettingsGridDisplay::slotDisableY); // textActivated() ignores code changes
   layoutGroup->addWidget (m_cmbDisableY, 0, 1);
 
   QLabel *labelCount = new QLabel (QString ("%1:").arg (tr ("Count")));
@@ -323,6 +332,9 @@ void DlgSettingsGridDisplay::handleOk ()
                                                             *m_modelGridDisplayAfter);
   cmdMediator ().push (cmd);
 
+  // Accepting Grid Display means the user wants to see the configured grid.
+  mainWindow ().showGridLines ();
+
   hide ();
 }
 
@@ -380,7 +392,6 @@ void DlgSettingsGridDisplay::load (CmdMediator &cmdMediator)
              cmdMediator.document().pixmap());
 
   updateControls ();
-  enableOk (false); // Disable Ok button since there not yet any changes
   updatePreview();
 }
 

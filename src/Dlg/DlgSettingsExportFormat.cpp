@@ -254,8 +254,10 @@ void DlgSettingsExportFormat::createFunctionsPointsSelection (QHBoxLayout *layou
                                                   QVariant (EXPORT_POINTS_INTERVAL_UNITS_GRAPH));
   m_cmbFunctionsPointsEvenlySpacingUnits->addItem(exportPointsIntervalUnitsToString (EXPORT_POINTS_INTERVAL_UNITS_SCREEN),
                                                   QVariant (EXPORT_POINTS_INTERVAL_UNITS_SCREEN));
-  connect (m_cmbFunctionsPointsEvenlySpacingUnits, SIGNAL (activated (const QString &)),
-           this, SLOT (slotFunctionsPointsEvenlySpacedIntervalUnits (const QString &))); // activated() ignores code changes
+  connect (m_cmbFunctionsPointsEvenlySpacingUnits,
+           &QComboBox::textActivated,
+           this,
+           &DlgSettingsExportFormat::slotFunctionsPointsEvenlySpacedIntervalUnits); // textActivated() ignores code changes
   layoutPointsSelections->addWidget (m_cmbFunctionsPointsEvenlySpacingUnits, row, 3, 1, 1, Qt::AlignLeft);
 
   m_lblOverflowFunctions = new QLabel (tr ("Too many points"));
@@ -339,8 +341,10 @@ void DlgSettingsExportFormat::createPreview(QGridLayout *layout, int &row)
                               QVariant (EXPORT_FILE_EXTENSION_TSV));
   m_cmbFileExtension->addItem(exportFileExtensionToPreviewString (EXPORT_FILE_EXTENSION_NOT_CSV_TSV),
                               QVariant (EXPORT_FILE_EXTENSION_NOT_CSV_TSV));
-  connect (m_cmbFileExtension, SIGNAL (activated (const QString &)),
-           this, SLOT (slotFileExtension (const QString &))); // activated() ignores code changes
+  connect (m_cmbFileExtension,
+           &QComboBox::textActivated,
+           this,
+           &DlgSettingsExportFormat::slotFileExtension); // textActivated() ignores code changes
   layout->addWidget (m_cmbFileExtension, row, 0, 1, 1, Qt::AlignLeft);
 
   // Legend. Padding and margin in rich text do not work so &nbsp; is used for spacing
@@ -416,8 +420,10 @@ void DlgSettingsExportFormat::createRelationsPointsSelection (QHBoxLayout *layou
                                                                                      QVariant (EXPORT_POINTS_INTERVAL_UNITS_GRAPH));
   m_cmbRelationsPointsEvenlySpacingUnits->addItem(exportPointsIntervalUnitsToString (EXPORT_POINTS_INTERVAL_UNITS_SCREEN),
                                                                                      QVariant (EXPORT_POINTS_INTERVAL_UNITS_SCREEN));
-  connect (m_cmbRelationsPointsEvenlySpacingUnits, SIGNAL (activated (const QString &)),
-           this, SLOT (slotRelationsPointsEvenlySpacedIntervalUnits (const QString &))); // activated() ignores code changes
+  connect (m_cmbRelationsPointsEvenlySpacingUnits,
+           &QComboBox::textActivated,
+           this,
+           &DlgSettingsExportFormat::slotRelationsPointsEvenlySpacedIntervalUnits); // textActivated() ignores code changes
   layoutPointsSelections->addWidget (m_cmbRelationsPointsEvenlySpacingUnits, row, 3, 1, 1, Qt::AlignLeft);
 
   m_lblOverflowRelations = new QLabel (tr ("Too many points"));

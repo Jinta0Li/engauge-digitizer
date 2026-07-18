@@ -121,13 +121,23 @@ void WindowTable::focusOutEvent (QFocusEvent *event)
 
 void WindowTable::mouseMoveEvent (QMouseEvent *event)
 {
+  // When drag export is disabled, preserve QTableView's normal click-and-drag rectangular selection.
+  // Previously this override started a QDrag unconditionally, so selection by mouse never worked even
+  // though setDragEnabled(false) is the default.
+  if (!dragEnabled ()) {
+    QTableView::mouseMoveEvent (event);
+    return;
+  }
+
   // Only use left clicks
   if (! (event->buttons() & Qt::LeftButton)) {
+    QTableView::mouseMoveEvent (event);
     return;
   }
 
   // Ignore small moves
   if ((event->pos() - m_pressPos).manhattanLength() < QApplication::startDragDistance ()) {
+    QTableView::mouseMoveEvent (event);
     return;
   }
 

@@ -152,7 +152,10 @@ void DlgSettingsGridRemoval::createRemoveGridLinesX (QGridLayout *layout, int &r
                          QVariant (GRID_COORD_DISABLE_STEP));
   m_cmbDisableX->addItem(gridCoordDisableToString (GRID_COORD_DISABLE_STOP),
                          QVariant (GRID_COORD_DISABLE_STOP));
-  connect (m_cmbDisableX, SIGNAL (activated (const QString &)), this, SLOT (slotDisableX (const QString &))); // activated() ignores code changes
+  connect (m_cmbDisableX,
+           &QComboBox::textActivated,
+           this,
+           &DlgSettingsGridRemoval::slotDisableX); // textActivated() ignores code changes
   layoutGroup->addWidget (m_cmbDisableX, 0, 1);
 
   QLabel *labelCount = new QLabel (QString ("%1:").arg (tr ("Count")));
@@ -230,7 +233,10 @@ void DlgSettingsGridRemoval::createRemoveGridLinesY (QGridLayout *layout, int &r
                          QVariant (GRID_COORD_DISABLE_STEP));
   m_cmbDisableY->addItem(gridCoordDisableToString (GRID_COORD_DISABLE_STOP),
                          QVariant (GRID_COORD_DISABLE_STOP));
-  connect (m_cmbDisableY, SIGNAL (activated (const QString &)), this, SLOT (slotDisableY (const QString &))); // activated() ignores code changes
+  connect (m_cmbDisableY,
+           &QComboBox::textActivated,
+           this,
+           &DlgSettingsGridRemoval::slotDisableY); // textActivated() ignores code changes
   layoutGroup->addWidget (m_cmbDisableY, 0, 1);
 
   QLabel *labelCount = new QLabel (QString ("%1:").arg (tr ("Count")));

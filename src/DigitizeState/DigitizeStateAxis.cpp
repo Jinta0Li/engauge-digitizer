@@ -143,7 +143,7 @@ void DigitizeStateAxis::handleMouseRelease (CmdMediator *cmdMediator,
 
     QMessageBox::warning (nullptr,
                           QObject::tr ("Engauge Digitizer"),
-                          QObject::tr ("Three axis points have been defined, and no more are needed or allowed."));
+                          QObject::tr ("All required axis points have been defined, and no more are needed or allowed."));
 
   } else {
 

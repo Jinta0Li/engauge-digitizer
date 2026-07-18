@@ -118,7 +118,10 @@ void DlgSettingsGuideline::createControls (QGridLayout *layout,
                                   "Set the color of the guidelines that can be dragged from the edges of the scene, and used "
                                   "to align points"));
   populateColorComboWithoutTransparent (*m_lineColor);
-  connect (m_lineColor, SIGNAL (activated (const QString &)), this, SLOT (slotLineColor (const QString &))); // activated() ignores code changes
+  connect (m_lineColor,
+           &QComboBox::textActivated,
+           this,
+           &DlgSettingsGuideline::slotLineColor); // textActivated() ignores code changes
   layout->addWidget (m_lineColor, row++, 2);
 
   QLabel *labelLineWidthActive = new QLabel(QString ("%1:").arg (tr ("Active Line width")));

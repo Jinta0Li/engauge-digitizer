@@ -302,6 +302,7 @@ if(BUILD_TESTING)
     TestCentipedeEndpoints
     TestCorrelation
     TestCrc32
+    TestCurveProperties
     TestExport
     TestExportAlign
     TestFitting
@@ -309,6 +310,7 @@ if(BUILD_TESTING)
     TestGraphCoords
     TestGridLineLimiter
     TestGuidelines
+    TestImportCoordinateSetup
     TestMatrix
     TestProjectedPoint
     TestSpline

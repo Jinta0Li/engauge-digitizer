@@ -103,7 +103,7 @@ public:
   /// Reset, when loading a document after the first, to same state that first document was at when loaded
   void resetOnLoad();
 
-  /// Transform is defined when at least three axis points have been digitized
+  /// Transform is defined when all axis points required by the selected coordinate definition have been digitized
   bool transformIsDefined() const;
 
   /// Transform from linear cartesian graph coordinates to cartesian, polar, linear, log coordinates

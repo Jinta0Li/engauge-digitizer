@@ -25,7 +25,7 @@ class QGraphicsScene;
 class QPolygonF;
 class Transformation;
 
-/// Box shape that is drawn through the three axis points, to temporarily (usually) or permanently (rarely)
+/// Box shape that is drawn through the axis points, to temporarily (usually) or permanently (rarely)
 /// highlight the local up/down/left/right directions when all axis points have been defined. The goal of the checker
 /// is to make it obvious when a mistake has happened so the screen-to-graph transformation is
 /// currently wrong - since the expected up/down/left/right directions will be awry which will distort the checker

@@ -12,28 +12,28 @@
   Engauge Digitizer - Glossary</H2>
 <HR WIDTH="100%">
 <DL>
-<DT>advanced import mode</DT>
-<DD>The advanced Import mode offers the following advanced options for the imported file: 
-floating axes and multiple coordinate systems. The advanced options
-are only used by a small percentage of users and are therefore not made available during
-the normal Import process. Once a file has been imported, the advanced mode settings cannot be
-changed.</DD>
+<DT>coordinate system setup</DT>
+<DD>Every newly imported image uses Coordinate System setup. It lets the user choose four axis
+points, three axis points, or a scale bar, and also supports floating axes and multiple coordinate
+systems. Four axis points are selected by default. Once an image has been imported, these definition
+settings cannot be changed without importing the image again.</DD>
 <DT>axes checker</DT>
 <DD>Red box that briefly appears whenever the coordinate system has just changed. The red box
 is drawn as a simple rectangle in cartesian coordinates, or as an annular arc in polar coordinates.
 The axes checker can indicate when there is a mistake with the axis points, especially data entry errors
 and accidental transposition. An axis point error usually makes the axes checker appear skewed.</DD>
 <DT>axis point</DT>
-<DD>Point that is added to a graph to define the scale. The two coordinate values must be defined
-for each axis point. Three axis points are needed to define the scales in the two coordinate directions</DD>
+<DD>Point that is added to a graph to define its coordinate scale. Three-point setup stores both
+coordinate values at each point. Four-point setup uses two x-only points and two y-only points, which
+also works when the axes intersection values are unknown.</DD>
 <DT>checklist guide</DT>
 <DD>List of steps to follow to digitize a graph, with checkmarks showing progress. This can be created 
 during import, by running the checklist guide wizard.</DD>
 <DT>checklist guide wizard</DT>
 <DD>Wizard that can be used during import to create a checklist guide.</DD>
 <DT>collinear</DT>
-<DD>Collinear points lie along a straight line. The three axis points cannot
-be collinear because graph coordinates are therefore impossible to compute.</DD>
+<DD>Collinear points lie along a straight line. In three-point setup the three axis points cannot
+be collinear because graph coordinates would be impossible to compute.</DD>
 <DT>collocated</DT>
 <DD>Collocated points are close to each other or at the same location. Multiple axis points cannot
 share the same location because graph coordinates are therefore impossible to compute,

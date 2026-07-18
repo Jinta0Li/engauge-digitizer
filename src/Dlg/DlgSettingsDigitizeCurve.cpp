@@ -102,7 +102,10 @@ void DlgSettingsDigitizeCurve::createControls (QGridLayout *layout,
   ENGAUGE_ASSERT (m_cmbSize->count() == NUM_CURSOR_SIZES);
   m_cmbSize->setWhatsThis (tr ("Horizontal and vertical size of the cursor in pixels"));
   layoutCursor->addWidget (m_cmbSize, rowCursor++, 1);
-  connect (m_cmbSize, SIGNAL (currentIndexChanged (const QString &)), this, SLOT (slotCursorSize (const QString &)));
+  connect (m_cmbSize,
+           &QComboBox::currentTextChanged,
+           this,
+           &DlgSettingsDigitizeCurve::slotCursorSize);
 
   QLabel *labelInnerRadius = new QLabel(QString ("%1:").arg (tr ("Inner radius (pixels)")));
   layoutCursor->addWidget (labelInnerRadius, rowCursor, 0);

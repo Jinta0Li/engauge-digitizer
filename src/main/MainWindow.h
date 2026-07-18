@@ -232,10 +232,13 @@ public:
   /// Show temporary message in status bar
   void showTemporaryMessage (const QString &temporaryMessage);
 
+  /// Enable and display grid lines using the current grid display settings
+  void showGridLines ();
+
   /// Return read-only copy of transformation
   Transformation transformation() const;
 
-  /// Return true if all three axis points have been defined.
+  /// Return true if all required axis points have been defined.
   bool transformIsDefined() const;
 
   /// See GraphicsScene::updateAfterCommand
@@ -332,11 +335,9 @@ private slots:
   void slotEditMenu ();
   void slotEditPaste ();
   void slotEditPasteAsNew ();
-  void slotEditPasteAsNewAdvanced ();
   void slotFileClose ();
   void slotFileExport ();
   void slotFileImport();
-  void slotFileImportAdvanced();
   void slotFileImportDraggedImage(QImage);
   void slotFileImportDraggedImageUrl(QUrl);
   void slotFileImportImage(QString, QImage);
@@ -417,7 +418,7 @@ private:
 
   enum ImportType {
     IMPORT_TYPE_SIMPLE,
-    IMPORT_TYPE_ADVANCED,
+    IMPORT_TYPE_COORDINATE_SETUP,
     IMPORT_TYPE_IMAGE_REPLACE
   };
 
@@ -443,6 +444,7 @@ private:
   QString fileNameForExtractImageOnly () const; /// File name for extract-image-only batch mode
   bool clipboardHasImportableImage () const;
   QString clipboardImageFileName () const;
+  bool closeCurrentDocument (); /// Close the current document, returning false when the user cancels
   void filePaste (ImportType importType); /// Same steps as fileImport but with import from clipboard
   void ghostsCreate (); /// Create the ghosts for seeing all coordinate systems at once
   void ghostsDestroy (); /// Destroy the ghosts for seeing all coordinate systems at once
@@ -462,6 +464,8 @@ private:
   void loadDocumentFile (const QString &fileName);
   void loadErrorReportFile(const QString &errorReportFile);
   void loadGuidelinesFromCmdMediator();  
+  void loadImageWithCoordinateSetup (const QString &fileName,
+                                     const QImage &image);
   bool loadImage (const QString &fileName,
                   const QImage &image,
                   ImportType ImportType);
@@ -532,7 +536,6 @@ private:
 
   QMenu *m_menuFile;
   QAction *m_actionImport;
-  QAction *m_actionImportAdvanced;
   QAction *m_actionImportImageReplace;
   QAction *m_actionOpen;
   QMenu *m_menuFileOpenRecent;
@@ -552,7 +555,6 @@ private:
   QAction *m_actionEditPaste;
   QAction *m_actionEditDelete;
   QAction *m_actionEditPasteAsNew;
-  QAction *m_actionEditPasteAsNewAdvanced;
 
   QMenu *m_menuDigitize;
   QActionGroup *m_groupDigitize;

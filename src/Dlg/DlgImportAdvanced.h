@@ -15,7 +15,7 @@ class QRadioButton;
 class QSpinBox;
 class QString;
 
-/// Dialog for setting the advanced parameters in a newly imported Document
+/// Dialog for choosing coordinate definition parameters in a newly imported Document
 class DlgImportAdvanced : public DlgSettingsAbstractBase
 {
   Q_OBJECT;
@@ -23,6 +23,9 @@ class DlgImportAdvanced : public DlgSettingsAbstractBase
  public:
   /// Single constructor
   DlgImportAdvanced(MainWindow &mainWindow);
+
+  /// Default coordinate definition for newly imported graphs
+  static DocumentAxesPointsRequired defaultDocumentAxesPointsRequired ();
 
   virtual void createOptionalSaveDefault (QHBoxLayout *layout);
   virtual QWidget *createSubPanel ();

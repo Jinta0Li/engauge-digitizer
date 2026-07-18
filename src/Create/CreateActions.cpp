@@ -6,6 +6,7 @@
 
 #include "CreateActions.h"
 #include "DigitAxis.xpm"
+#include "DigitAxis4.xpm"
 #include "DigitColorPicker.xpm"
 #include "DigitCurve.xpm"
 #include "DigitGuideline.xpm"
@@ -17,7 +18,6 @@
 #include "MainWindow.h"
 #include <QAction>
 #include <QActionGroup>
-#include <QCoreApplication>
 #include <QIcon>
 #include <QPixmap>
 #include <QSignalMapper>
@@ -43,7 +43,9 @@ void CreateActions::createDigitize (MainWindow &mw)
 {
   LOG4CPP_INFO_S ((*mainCat)) << "CreateActions::createDigitize";
 
-  QPixmap pixmapAxis (DigitAxis_xpm);
+  // Four points are the default for newly imported images. The icon is updated
+  // later to match the active document when a three-point document is loaded.
+  QPixmap pixmapAxis (DigitAxis4_xpm);
   QPixmap pixmapCurve (DigitCurve_xpm);
   QPixmap pixmapColorPicker (DigitColorPicker_xpm);
   QPixmap pixmapGuideline (DigitGuideline_xpm);
@@ -76,23 +78,22 @@ void CreateActions::createDigitize (MainWindow &mw)
   mw.m_actionDigitizeAxis->setWhatsThis (tr ("Digitize Axis Point\n\n"
                                              "Digitizes an axis point for a graph by placing a new point at the cursor "
                                              "after a mouse click. The coordinates of the axis point are then "
-                                             "entered. After Import and Import (Advanced), three axis points with "
-                                             "(X1,Y1) (X2,Y2) (X3,Y3) coordinates can be digitized to define the graph coordinates. "
-                                             "Optionally, after Import (Advanced) four axis points with "
-                                             "(X1) (X2) (Y3) (Y4) coordinates can be digitized to define the graph coordinates.\n\n"
+                                             "entered. During import, choose either three axis points with "
+                                             "(X1,Y1) (X2,Y2) (X3,Y3) coordinates, or four axis points with "
+                                             "(X1) (X2) (Y3) (Y4) coordinates, to define the graph coordinates.\n\n"
                                              "This tool is disabled when a complete set of axis points has been defined, or "
-                                             "after Import (Advanced) if Scale Bar is selected."));
+                                             "if Scale Bar was selected during import."));
   connect (mw.m_actionDigitizeAxis, SIGNAL (triggered ()), &mw, SLOT (slotDigitizeAxis ()));
 
   mw.m_actionDigitizeScale = new QAction (iconScale, tr ("Scale Bar Tool"), &mw);
   mw.m_actionDigitizeScale->setShortcut (QKeySequence (tr ("Shift+F8")));
   mw.m_actionDigitizeScale->setCheckable (true);
-  mw.m_actionDigitizeScale->setStatusTip (tr ("Digitize scale bar for a map. Requires Import (Advanced)."));
+  mw.m_actionDigitizeScale->setStatusTip (tr ("Digitize a scale bar for a map."));
   mw.m_actionDigitizeScale->setWhatsThis (tr ("Digitize Scale Bar\n\n"
                                               "Digitize a scale bar for a map by clicking and dragging. The length of the "
                                               "scale bar is then entered. In a map, the two endpoints of the scale "
                                               "bar define the distances in graph coordinates.\n\n"
-                                              "This tool is enabled by selecting Scale Bar in Import (Advanced).\n\n"
+                                              "This tool is enabled by selecting Scale Bar during import.\n\n"
                                               "This tool is disabled when a scale bar has been defined, or "
                                               "if axis points were selected during import."));
   connect (mw.m_actionDigitizeScale, SIGNAL (triggered ()), &mw, SLOT (slotDigitizeScale ()));
@@ -206,18 +207,11 @@ void CreateActions::createEdit (MainWindow &mw)
   connect (mw.m_actionEditDelete, SIGNAL (triggered ()), &mw, SLOT (slotEditDelete ()));
 
   mw.m_actionEditPasteAsNew = new QAction (tr ("Paste As New"), &mw);
-  mw.m_actionEditPasteAsNew->setStatusTip (tr ("Pastes an image from the clipboard."));
+  mw.m_actionEditPasteAsNew->setStatusTip (tr ("Pastes an image from the clipboard and opens coordinate system setup."));
   mw.m_actionEditPasteAsNew->setWhatsThis (tr ("Paste as New\n\n"
-                                               "Creates a new document by pasting an image from the clipboard."));
+                                               "Creates a new document by pasting an image from the clipboard, then lets you choose "
+                                               "how the coordinate system is defined."));
   connect (mw.m_actionEditPasteAsNew, SIGNAL (triggered ()), &mw, SLOT (slotEditPasteAsNew ()));
-
-  const QString pasteWithCoordinates = QString ("%1 — %2").arg (
-        tr ("Paste As New"),
-        tr ("Coordinates..."));
-  mw.m_actionEditPasteAsNewAdvanced = new QAction (pasteWithCoordinates, &mw);
-  mw.m_actionEditPasteAsNewAdvanced->setStatusTip (pasteWithCoordinates);
-  mw.m_actionEditPasteAsNewAdvanced->setWhatsThis (pasteWithCoordinates);
-  connect (mw.m_actionEditPasteAsNewAdvanced, SIGNAL (triggered ()), &mw, SLOT (slotEditPasteAsNewAdvanced ()));
 }
 
 void CreateActions::createFile (MainWindow &mw)
@@ -226,21 +220,11 @@ void CreateActions::createFile (MainWindow &mw)
 
   mw.m_actionImport = new QAction(tr ("&Import..."), &mw);
   mw.m_actionImport->setShortcut (tr ("Ctrl+I"));
-  mw.m_actionImport->setStatusTip (tr ("Creates a new document by importing a simple image."));
+  mw.m_actionImport->setStatusTip (tr ("Imports an image and opens coordinate system setup."));
   mw.m_actionImport->setWhatsThis (tr ("Import Image\n\n"
-                                       "Creates a new document by importing an image with a single coordinate system, "
-                                       "and axes both coordinates known.\n\n"
-                                       "For more complicated images with multiple coordinate systems, "
-                                       "and/or floating axes, Import (Advanced) is used instead."));
+                                       "Creates a new document by importing an image, then lets you choose three or four "
+                                       "axis points, a scale bar, and the number of coordinate systems."));
   connect (mw.m_actionImport, SIGNAL (triggered ()), &mw, SLOT (slotFileImport ()));
-
-  const QString importWithCoordinates = QString ("%1 — %2").arg (
-        QCoreApplication::translate ("MainWindow", "Import Image"),
-        tr ("Coordinates..."));
-  mw.m_actionImportAdvanced = new QAction(importWithCoordinates, &mw);
-  mw.m_actionImportAdvanced->setStatusTip (importWithCoordinates);
-  mw.m_actionImportAdvanced->setWhatsThis (importWithCoordinates);
-  connect (mw.m_actionImportAdvanced, SIGNAL (triggered ()), &mw, SLOT (slotFileImportAdvanced ()));
 
   mw.m_actionImportImageReplace = new QAction (tr ("Import (Image Replace)..."), &mw);
   mw.m_actionImportImageReplace->setStatusTip (tr ("Imports a new image into the current document, replacing the existing image."));

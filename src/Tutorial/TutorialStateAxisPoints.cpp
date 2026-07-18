@@ -45,10 +45,10 @@ void TutorialStateAxisPoints::begin ()
                                 "for entering the axis point\n"
                                 "coordinates"),
                             QPoint (300, 210));
-  m_text2 = createTextItem (tr ("Step 3 - Enter the two coordinates\n"
-                                "of the axis point and then click Ok.\n"
-                                "Repeat steps 2 and 3 twice more\n"
-                                "until three axis points are created"),
+  m_text2 = createTextItem (tr ("Step 3 - Enter the requested coordinate\n"
+                                "value or values and then click Ok.\n"
+                                "Repeat steps 2 and 3 until all three\n"
+                                "or four selected points are created"),
                             QPoint (280, 320));
 
   QSize backgroundSize = context().tutorialDlg().backgroundSize();
