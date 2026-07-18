@@ -6,7 +6,7 @@
 #define MyAppFileVersion "12.10.0.0"
 #endif
 #ifndef MyAppSourceDir
-#define MyAppSourceDir "..\..\dist\Engauge Digitizer Multilingual"
+#define MyAppSourceDir "..\..\dist\Engauge Digitizer"
 #endif
 #define MyAppPublisher "Engauge Digitizer Community Build"
 #define MyAppExeName "Engauge.exe"
@@ -21,7 +21,7 @@ DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 LicenseFile=..\..\LICENSE
 OutputDir=..\..\dist
-OutputBaseFilename=Engauge-Digitizer-{#MyAppVersion}-Multilingual-Windows-x64-Setup
+OutputBaseFilename=Engauge-Digitizer-{#MyAppVersion}-Windows-x64-Setup
 SetupIconFile=..\..\src\img\digitizer.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
 Compression=lzma2/ultra64

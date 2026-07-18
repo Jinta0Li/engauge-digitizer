@@ -13,9 +13,9 @@ Open the [latest release](../../releases/latest) and choose one of these package
 - **Setup.exe**: standard Windows installation with Start Menu shortcuts and uninstall support. Windows 标准安装版，提供开始菜单快捷方式和卸载功能。
 - **Portable.zip**: extract and run `Engauge.exe`; no installation is required. 解压后直接运行 `Engauge.exe`，无需安装。
 
-Both packages include the required Qt and FFTW runtime files and all available interface languages.
+Both packages include the required Qt and FFTW runtime files.
 
-两种软件包均包含所需的 Qt、FFTW 运行库以及全部可用界面语言。
+两种软件包均包含所需的 Qt 和 FFTW 运行库。
 
 These community binaries are not code-signed, so Windows SmartScreen may request confirmation. Verify downloads with the published SHA256 checksums.
 
@@ -24,7 +24,6 @@ These community binaries are not code-signed, so Windows SmartScreen may request
 ## This fork / 本维护分支
 
 - Windows x64 build based on Qt 6.
-- Simplified Chinese and Traditional Chinese translations with runtime language switching.
 - Unified image import, clipboard paste, and coordinate calibration workflows.
 - Three-point and four-point axis calibration, with four-point calibration as the default.
 - Automated Windows build, test, deployment, and packaging scripts.

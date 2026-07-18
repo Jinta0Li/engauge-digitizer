@@ -11,7 +11,7 @@ param(
 
     [string]$BuildDirectory = "cmake-build\windows-msvc-release",
 
-    [string]$StageDirectory = "dist\Engauge Digitizer Multilingual",
+    [string]$StageDirectory = "dist\Engauge Digitizer",
 
     [string]$CMakeExecutable = "cmake.exe",
 
@@ -100,7 +100,7 @@ $stageDirectoryPath = Get-AbsolutePath $StageDirectory $repositoryRoot
 $distDirectoryPath = Join-Path $repositoryRoot "dist"
 $windowsFileVersion = "$Version.0"
 $portableArchive = Join-Path $distDirectoryPath `
-    "Engauge-Digitizer-$Version-Multilingual-Windows-x64-Portable.zip"
+    "Engauge-Digitizer-$Version-Windows-x64-Portable.zip"
 
 Assert-RepositoryChildPath $stageDirectoryPath $repositoryRoot
 
@@ -356,7 +356,7 @@ try {
             (Join-Path $repositoryRoot "dev\windows\engauge_qt6.iss")
         )
         $setupExecutable = Join-Path $distDirectoryPath `
-            "Engauge-Digitizer-$Version-Multilingual-Windows-x64-Setup.exe"
+            "Engauge-Digitizer-$Version-Windows-x64-Setup.exe"
         if (-not (Test-Path $setupExecutable -PathType Leaf)) {
             throw "Inno Setup completed without producing $setupExecutable."
         }
