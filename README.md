@@ -1,6 +1,6 @@
 # Engauge Digitizer
 
-Engauge Digitizer is an excellent open-source tool for extracting data points from graphical images. However, the official project stopped providing pre-compiled Windows binaries for recent versions, offering only source code. This repository was created to help non-developer users by providing ready-to-use Windows installers compiled from the latest source.
+Engauge Digitizer is an open-source tool for extracting data points from graphical images. However, the official project stopped providing pre-compiled Windows binaries for recent versions, offering only source code. This repository was created to help non-developer users by providing ready-to-use Windows installers compiled from the latest source.
 
 ## Download
 
