@@ -10,7 +10,7 @@ Open the [latest release](../../releases/latest) and choose one of these package
 
 打开[最新版本页面](../../releases/latest)，选择以下任一软件包：
 
-- **Setup.exe — recommended / 推荐**: standard Windows installation with Start Menu shortcuts and uninstall support. Windows 标准安装版，提供开始菜单快捷方式和卸载功能。
+- **Setup.exe**: standard Windows installation with Start Menu shortcuts and uninstall support. Windows 标准安装版，提供开始菜单快捷方式和卸载功能。
 - **Portable.zip**: extract and run `Engauge.exe`; no installation is required. 解压后直接运行 `Engauge.exe`，无需安装。
 
 Both packages include the required Qt and FFTW runtime files and all available interface languages.
