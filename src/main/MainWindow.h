@@ -353,6 +353,7 @@ private slots:
   void slotHelpAbout();
   void slotHelpTutorial();
   void slotKeyPress (Qt::Key, bool);
+  void slotLanguageSelected (QAction *action);
   void slotLoadStartupFiles ();
   void slotMouseMove (QPointF);
   void slotMousePress (QPointF);
@@ -440,6 +441,8 @@ private:
   void fileImportWithPrompts (ImportType ImportType); /// Wrapper around fileImport that adds user prompt(s)
   QString fileNameForExportOnly () const; /// File name for export-only batch mode
   QString fileNameForExtractImageOnly () const; /// File name for extract-image-only batch mode
+  bool clipboardHasImportableImage () const;
+  QString clipboardImageFileName () const;
   void filePaste (ImportType importType); /// Same steps as fileImport but with import from clipboard
   void ghostsCreate (); /// Create the ghosts for seeing all coordinate systems at once
   void ghostsDestroy (); /// Destroy the ghosts for seeing all coordinate systems at once
@@ -484,6 +487,7 @@ private:
   void saveStartingDocumentSnapshot();
   void setCurrentFile(const QString &fileName);
   void setCurrentPathFromFile (const QString &fileName);
+  void setInterfaceLanguage (const QString &localeName);
   void setNonFillZoomFactor (ZoomFactor newZoomFactor);
   void setPixmap (const QString &curveSelected,
                   const QPixmap &pixmap);
@@ -508,6 +512,7 @@ private:
   void updateGridLines();
   void updateGuidelines();
   void updateHighlightOpacity();
+  void updateInterfaceLanguageActions ();
   void updateRecentFileList();
   void updateSettingsMainWindow();
   void updateSmallDialogs();
@@ -634,6 +639,9 @@ private:
   QAction *m_actionSettingsMainWindow;
   QAction *m_actionSettingsPointMatch;
   QAction *m_actionSettingsSegments;
+
+  QMenu *m_menuLanguage;
+  QActionGroup *m_groupLanguage;
 
   QMenu *m_menuHelp;
   QAction *m_actionHelpAbout;

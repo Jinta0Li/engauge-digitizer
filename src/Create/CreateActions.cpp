@@ -17,6 +17,7 @@
 #include "MainWindow.h"
 #include <QAction>
 #include <QActionGroup>
+#include <QCoreApplication>
 #include <QIcon>
 #include <QPixmap>
 #include <QSignalMapper>
@@ -193,9 +194,8 @@ void CreateActions::createEdit (MainWindow &mw)
 
   mw.m_actionEditPaste = new QAction (tr ("Paste"), &mw);
   mw.m_actionEditPaste->setShortcut (QKeySequence::Paste);
-  mw.m_actionEditPaste->setStatusTip (tr ("Pastes the selected points from the clipboard."));
-  mw.m_actionEditPaste->setWhatsThis (tr ("Paste\n\n"
-                                          "Pastes the selected points from the clipboard. They will be assigned to the current curve."));
+  mw.m_actionEditPaste->setStatusTip (tr ("Paste"));
+  mw.m_actionEditPaste->setWhatsThis (tr ("Paste"));
   connect (mw.m_actionEditPaste, SIGNAL (triggered ()), &mw, SLOT (slotEditPaste ()));
 
   mw.m_actionEditDelete = new QAction (tr ("Delete"), &mw);
@@ -211,10 +211,12 @@ void CreateActions::createEdit (MainWindow &mw)
                                                "Creates a new document by pasting an image from the clipboard."));
   connect (mw.m_actionEditPasteAsNew, SIGNAL (triggered ()), &mw, SLOT (slotEditPasteAsNew ()));
 
-  mw.m_actionEditPasteAsNewAdvanced = new QAction (tr ("Paste As New (Advanced)..."), &mw);
-  mw.m_actionEditPasteAsNewAdvanced->setStatusTip (tr ("Pastes an image from the clipboard, in advanced mode."));
-  mw.m_actionEditPasteAsNewAdvanced->setWhatsThis (tr ("Paste as New (Advanced)\n\n"
-                                                       "Creates a new document by pasting an image from the clipboard, in advanced mode."));
+  const QString pasteWithCoordinates = QString ("%1 — %2").arg (
+        tr ("Paste As New"),
+        tr ("Coordinates..."));
+  mw.m_actionEditPasteAsNewAdvanced = new QAction (pasteWithCoordinates, &mw);
+  mw.m_actionEditPasteAsNewAdvanced->setStatusTip (pasteWithCoordinates);
+  mw.m_actionEditPasteAsNewAdvanced->setWhatsThis (pasteWithCoordinates);
   connect (mw.m_actionEditPasteAsNewAdvanced, SIGNAL (triggered ()), &mw, SLOT (slotEditPasteAsNewAdvanced ()));
 }
 
@@ -232,11 +234,12 @@ void CreateActions::createFile (MainWindow &mw)
                                        "and/or floating axes, Import (Advanced) is used instead."));
   connect (mw.m_actionImport, SIGNAL (triggered ()), &mw, SLOT (slotFileImport ()));
 
-  mw.m_actionImportAdvanced = new QAction(tr ("Import (Advanced)..."), &mw);
-  mw.m_actionImportAdvanced->setStatusTip (tr ("Creates a new document by importing an image with support for advanced feaures."));
-  mw.m_actionImportAdvanced->setWhatsThis (tr ("Import (Advanced)\n\n"
-                                               "Creates a new document by importing an image with support for advanced feaures. In "
-                                               "advanced mode, there can be multiple coordinate systems and/or floating axes."));
+  const QString importWithCoordinates = QString ("%1 — %2").arg (
+        QCoreApplication::translate ("MainWindow", "Import Image"),
+        tr ("Coordinates..."));
+  mw.m_actionImportAdvanced = new QAction(importWithCoordinates, &mw);
+  mw.m_actionImportAdvanced->setStatusTip (importWithCoordinates);
+  mw.m_actionImportAdvanced->setWhatsThis (importWithCoordinates);
   connect (mw.m_actionImportAdvanced, SIGNAL (triggered ()), &mw, SLOT (slotFileImportAdvanced ()));
 
   mw.m_actionImportImageReplace = new QAction (tr ("Import (Image Replace)..."), &mw);
@@ -434,6 +437,10 @@ void CreateActions::createSettings (MainWindow &mw)
   mw.m_actionSettingsMainWindow->setWhatsThis (tr ("Main Window Settings\n\n"
                                                    "Main window settings affect the user interface and are not specific to any document"));
   connect (mw.m_actionSettingsMainWindow, SIGNAL (triggered ()), &mw, SLOT (slotSettingsMainWindow ()));
+
+  mw.m_groupLanguage = new QActionGroup (&mw);
+  mw.m_groupLanguage->setExclusive (true);
+  connect (mw.m_groupLanguage, SIGNAL (triggered (QAction*)), &mw, SLOT (slotLanguageSelected (QAction*)));
 }
 
 void CreateActions::createView (MainWindow &mw)

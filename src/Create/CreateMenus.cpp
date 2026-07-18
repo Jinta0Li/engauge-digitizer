@@ -7,6 +7,10 @@
 #include "CreateMenus.h"
 #include "Logger.h"
 #include "MainWindow.h"
+#include "TranslatorContainer.h"
+#include <algorithm>
+#include <QAction>
+#include <QActionGroup>
 #include <QMenu>
 #include <QMenuBar>
 
@@ -142,8 +146,31 @@ void CreateMenus::create(MainWindow &mw)
   mw.m_menuSettings->addAction (mw.m_actionSettingsMainWindow);
 
   mw.m_menuHelp = mw.menuBar()->addMenu(tr("&Help"));
+  mw.m_menuLanguage = mw.m_menuHelp->addMenu (tr ("Language"));
+
+  QAction *actionSystemLanguage = new QAction (tr ("System default"), &mw);
+  actionSystemLanguage->setCheckable (true);
+  actionSystemLanguage->setData (TranslatorContainer::systemLocaleName ());
+  mw.m_groupLanguage->addAction (actionSystemLanguage);
+  mw.m_menuLanguage->addAction (actionSystemLanguage);
+
+  QStringList localeNames = TranslatorContainer::availableLocaleNames ();
+  std::sort (localeNames.begin (), localeNames.end (), [] (const QString &left, const QString &right) {
+    return TranslatorContainer::localeLabel (left).localeAwareCompare (
+          TranslatorContainer::localeLabel (right)) < 0;
+  });
+  for (const QString &localeName : localeNames) {
+    QAction *actionLanguage = new QAction (TranslatorContainer::localeLabel (localeName), &mw);
+    actionLanguage->setCheckable (true);
+    actionLanguage->setData (localeName);
+    mw.m_groupLanguage->addAction (actionLanguage);
+    mw.m_menuLanguage->addAction (actionLanguage);
+  }
+  mw.updateInterfaceLanguageActions ();
+
+  mw.m_menuHelp->addSeparator ();
   mw.m_menuHelp->addAction (mw.m_actionHelpChecklistGuideWizard);
-  mw.m_menuHelp->insertSeparator(mw.m_actionHelpWhatsThis);
+  mw.m_menuHelp->addSeparator ();
   mw.m_menuHelp->addAction (mw.m_actionHelpWhatsThis);
   mw.m_menuHelp->addAction (mw.m_actionHelpTutorial);
 #if !defined(OSX_DEBUG) && !defined(OSX_RELEASE)

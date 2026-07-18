@@ -19,6 +19,7 @@
 #include <QMessageBox>
 #include <QObject>
 #include <QProcessEnvironment>
+#include <QSettings>
 #include <QStyleFactory>
 #include "TranslatorContainer.h"
 #include "ZoomFactor.h"
@@ -142,6 +143,14 @@ int main(int argc, char *argv[])
   qRegisterMetaType<ZoomFactor> ("ZoomFactor");
 
   QApplication app(argc, argv);
+
+  const QString settingsDirectory = qEnvironmentVariable ("ENGAUGE_SETTINGS_DIR");
+  if (!settingsDirectory.isEmpty ()) {
+    QSettings::setDefaultFormat (QSettings::IniFormat);
+    QSettings::setPath (QSettings::IniFormat,
+                        QSettings::UserScope,
+                        settingsDirectory);
+  }
 
   // Translations
   TranslatorContainer translatorContainer (app); // Must exist until execution terminates

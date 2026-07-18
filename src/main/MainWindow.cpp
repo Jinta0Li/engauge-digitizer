@@ -88,6 +88,7 @@
 #endif // ENGAUGE_PDF
 #include "PdfResolution.h"
 #include <QAction>
+#include <QActionGroup>
 #include <QApplication>
 #include <QClipboard>
 #include <QCloseEvent>
@@ -103,6 +104,7 @@
 #include <QKeySequence>
 #include <qmath.h>
 #include <QMessageBox>
+#include <QMimeData>
 #include <QMouseEvent>
 #include <QPrintDialog>
 #include <QPrinter>
@@ -117,6 +119,7 @@
 #include <QTimer>
 #include <QToolBar>
 #include <QToolButton>
+#include <QUrl>
 #include "QtToString.h"
 #include <QVBoxLayout>
 #include <QWhatsThis>
@@ -126,6 +129,7 @@
 #include "Settings.h"
 #include "StatusBar.h"
 #include "TransformationStateContext.h"
+#include "TranslatorContainer.h"
 #include "TutorialDlg.h"
 #include "UrlDirty.h"
 #include "Version.h"
@@ -198,6 +202,10 @@ MainWindow::MainWindow(const QString &errorReportFile,
 
   CreateFacade createFacade;
   createFacade.create (*this);
+
+  connect (QApplication::clipboard (), &QClipboard::dataChanged, this, [this] () {
+    updateControls ();
+  });
 
   updateControls ();
 
@@ -761,10 +769,56 @@ QString MainWindow::fileNameForExtractImageOnly () const
   return fileName;
 }
 
+bool MainWindow::clipboardHasImportableImage () const
+{
+  const QMimeData *mimeData = QApplication::clipboard ()->mimeData ();
+
+  return mimeData != nullptr &&
+      (mimeData->hasImage () || !clipboardImageFileName ().isEmpty ());
+}
+
+QString MainWindow::clipboardImageFileName () const
+{
+  const QMimeData *mimeData = QApplication::clipboard ()->mimeData ();
+  if (mimeData != nullptr && mimeData->hasUrls ()) {
+    for (const QUrl &url : mimeData->urls ()) {
+      if (url.isLocalFile ()) {
+        const QString fileName = url.toLocalFile ();
+        QImageReader reader (fileName);
+        if (reader.canRead ()) {
+          return fileName;
+        }
+      }
+    }
+  }
+
+  return QString ();
+}
+
 void MainWindow::filePaste (ImportType importType)
 {
   LOG4CPP_INFO_S ((*mainCat)) << "MainWindow::filePaste"
                               << " importType=" << importType;
+
+  QImage image = QApplication::clipboard ()->image ();
+  const QString clipboardFileName = image.isNull () ? clipboardImageFileName () : QString ();
+
+  if (image.isNull () && clipboardFileName.isEmpty ()) {
+    QMessageBox::warning (this,
+                          engaugeWindowTitle (),
+                          messageCannotReadFile ("clipboard"));
+    return;
+  }
+
+  if (!maybeSave ()) {
+    return;
+  }
+
+  if (!clipboardFileName.isEmpty ()) {
+    fileImport (clipboardFileName,
+                importType);
+    return;
+  }
 
   QString originalFileOld = m_originalFile;
   bool originalFileWasImported = m_originalFileWasImported;
@@ -782,9 +836,6 @@ void MainWindow::filePaste (ImportType importType)
     // Restore the background just closed by slotFileClose. This is required so when the image is loaded for preview, it will appear
     m_backgroundStateContext->setBackgroundImage(BACKGROUND_IMAGE_ORIGINAL);
   }
-
-  // An image was in the clipboard when this method was called but it may have disappeared
-  QImage image = QApplication::clipboard()->image();
 
   bool loaded = false;
   if (!loaded) {
@@ -1796,6 +1847,10 @@ void MainWindow::settingsReadMainWindow (QSettings &settings)
                  SETTINGS_GEOMETRY_WINDOW_DOCK_AREA,
                  SETTINGS_GEOMETRY_WINDOW_DOCK_GEOMETRY,
                  Qt::RightDockWidgetArea);
+  bool viewGeometryWindow = settings.value (SETTINGS_GEOMETRY_WINDOW_VISIBLE,
+                                            true).toBool ();
+  m_actionViewGeometryWindow->setChecked (viewGeometryWindow);
+  m_dockGeometryWindow->setVisible (viewGeometryWindow);
 
   // Main window settings. Preference for initial zoom factor is 100%, rather than fill mode, for issue #25. Some or all
   // settings are saved to the application AND saved to m_modelMainWindow for use in DlgSettingsMainWindow. Note that
@@ -1803,10 +1858,17 @@ void MainWindow::settingsReadMainWindow (QSettings &settings)
   QLocale localeDefault;
   QLocale::Language language = static_cast<QLocale::Language> (settings.value (SETTINGS_LOCALE_LANGUAGE,
                                                                                QVariant (localeDefault.language())).toInt());
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+  QLocale::Territory territory = static_cast<QLocale::Territory> (settings.value (SETTINGS_LOCALE_COUNTRY,
+                                                                                  QVariant (localeDefault.territory())).toInt());
+  QLocale locale (language,
+                  territory);
+#else
   QLocale::Country country = static_cast<QLocale::Country> (settings.value (SETTINGS_LOCALE_COUNTRY,
                                                                             QVariant (localeDefault.country())).toInt());
   QLocale locale (language,
                   country);
+#endif
   slotViewZoom (static_cast<ZoomFactor> (settings.value (SETTINGS_ZOOM_FACTOR,
                                                          QVariant (ZOOM_1_TO_1)).toInt()));
   m_modelMainWindow.setLocale (locale);
@@ -1895,6 +1957,7 @@ void MainWindow::settingsWrite ()
     settings.setValue (SETTINGS_GEOMETRY_WINDOW_DOCK_AREA, dockWidgetArea (m_dockGeometryWindow));
 
   }
+  settings.setValue (SETTINGS_GEOMETRY_WINDOW_VISIBLE, m_actionViewGeometryWindow->isChecked ());
   settings.setValue (SETTINGS_BACKGROUND_IMAGE, m_cmbBackground->currentData().toInt());
   settings.setValue (SETTINGS_CHECKLIST_GUIDE_WIZARD, m_actionHelpChecklistGuideWizard->isChecked ());
   settings.setValue (SETTINGS_DRAG_DROP_EXPORT, m_modelMainWindow.dragDropExport ());
@@ -1904,7 +1967,11 @@ void MainWindow::settingsWrite ()
   settings.setValue (SETTINGS_IMPORT_PDF_RESOLUTION, m_modelMainWindow.pdfResolution ());
   settings.setValue (SETTINGS_LOAD_VIEWS, m_modelMainWindow.loadViews());  
   settings.setValue (SETTINGS_LOCALE_LANGUAGE, m_modelMainWindow.locale().language());
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+  settings.setValue (SETTINGS_LOCALE_COUNTRY, m_modelMainWindow.locale().territory());
+#else
   settings.setValue (SETTINGS_LOCALE_COUNTRY, m_modelMainWindow.locale().country());
+#endif
   settings.setValue (SETTINGS_MAIN_DIRECTORY_EXPORT_SAVE,
                      directoryPersist.getDirectoryExportSave().absolutePath());
   settings.setValue (SETTINGS_MAIN_DIRECTORY_IMPORT_LOAD,
@@ -2406,13 +2473,23 @@ void MainWindow::slotEditMenu ()
 {
   LOG4CPP_INFO_S ((*mainCat)) << "MainWindow::slotEditMenu";
 
-  m_actionEditPasteAsNew->setEnabled (!QApplication::clipboard()->image().isNull());
-  m_actionEditPasteAsNewAdvanced->setEnabled (!QApplication::clipboard()->image().isNull());
+  const bool hasImportableImage = clipboardHasImportableImage ();
+  m_actionEditPasteAsNew->setEnabled (hasImportableImage);
+  m_actionEditPasteAsNewAdvanced->setEnabled (hasImportableImage);
+  m_actionEditPaste->setEnabled (m_digitizeStateContext->canPaste (m_transformation,
+                                                                   m_view->size ()) ||
+                                 hasImportableImage);
 }
 
 void MainWindow::slotEditPaste ()
 {
   LOG4CPP_INFO_S ((*mainCat)) << "MainWindow::slotEditPaste";
+
+  if (!m_digitizeStateContext->canPaste (m_transformation,
+                                         m_view->size ())) {
+    filePaste (IMPORT_TYPE_SIMPLE);
+    return;
+  }
 
   QList<QPoint> points;
   QList<double> ordinals;
@@ -3016,6 +3093,32 @@ void MainWindow::slotSettingsPointMatch ()
 
   m_dlgSettingsPointMatch->load (*m_cmdMediator);
   m_dlgSettingsPointMatch->show ();
+}
+
+void MainWindow::slotLanguageSelected (QAction *action)
+{
+  if (action != nullptr) {
+    setInterfaceLanguage (action->data ().toString ());
+  }
+}
+
+void MainWindow::setInterfaceLanguage (const QString &localeName)
+{
+  if (TranslatorContainer::interfaceLocaleName () == localeName) {
+    return;
+  }
+
+  QSettings settings (SETTINGS_ENGAUGE, SETTINGS_DIGITIZER);
+  settings.beginGroup (SETTINGS_GROUP_MAIN_WINDOW);
+  settings.setValue (SETTINGS_INTERFACE_LOCALE, localeName);
+  settings.endGroup ();
+  settings.sync ();
+
+  updateInterfaceLanguageActions ();
+
+  QMessageBox::information (this,
+                            tr ("Language"),
+                            tr ("The interface language has been saved. Restart Engauge to apply it."));
 }
 
 void MainWindow::slotSettingsSegments ()
@@ -3622,7 +3725,8 @@ void MainWindow::updateControls ()
                                 (tableFittingIsActive && tableFittingIsCopyable) ||
                                 (tableGeometryIsActive && tableGeometryIsCopyable));
   m_actionEditPaste->setEnabled (m_digitizeStateContext->canPaste (m_transformation,
-                                                                   m_view->size ()));
+                                                                   m_view->size ()) ||
+                                 clipboardHasImportableImage ());
   m_actionEditDelete->setEnabled (!tableFittingIsActive &&
                                   !tableGeometryIsActive &&
                                   m_scene->selectedItems().count () > 0);
@@ -3970,6 +4074,8 @@ void MainWindow::updateSettingsMainWindow()
 {
   LOG4CPP_INFO_S ((*mainCat)) << "MainWindow::updateSettingsMainWindow";
 
+  updateInterfaceLanguageActions ();
+
   if (m_modelMainWindow.zoomControl() == ZOOM_CONTROL_MENU_ONLY ||
       m_modelMainWindow.zoomControl() == ZOOM_CONTROL_MENU_WHEEL) {
 
@@ -3993,6 +4099,14 @@ void MainWindow::updateSettingsMainWindow()
   updateFittingWindow(); // Forward the drag and drop choice
   updateGeometryWindow(); // Forward the drag and drop choice
   m_guidelines.updateColor ();  
+}
+
+void MainWindow::updateInterfaceLanguageActions ()
+{
+  const QString selectedLocaleName = TranslatorContainer::interfaceLocaleName ();
+  for (QAction *action : m_groupLanguage->actions ()) {
+    action->setChecked (action->data ().toString () == selectedLocaleName);
+  }
 }
 
 void MainWindow::updateSettingsMainWindow(const MainWindowModel &modelMainWindow)

@@ -1,5 +1,9 @@
 This file gives details for building Engauge from source code. 
 
+For the currently supported Qt 6 build baseline and reproducible Windows and Linux
+commands, see BUILDING.md. The platform notes below are retained for historical
+reference and may describe obsolete Qt 5 toolchains.
+
    *****************************************************************
    *                                                               *
    *  If you want to use Engauge immediately, and do not need to   *

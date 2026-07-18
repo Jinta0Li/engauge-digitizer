@@ -52,7 +52,7 @@
 # More comments are in the INSTALL file, and below
 
 QT += core gui printsupport widgets xml
-CONFIG += c++11 # For nullptr
+CONFIG += c++17 # Required by Qt 6
 
 !mac {
 QT += help
@@ -1259,7 +1259,7 @@ contains(DEFINES, NETWORKING) {
 #   nl = Dutch
 #   pt = Portuguese Brazil=_br
 #   ru = Russian    Federation=_ru
-#   zh = Chinese    China=_cn
+#   zh = Chinese    Simplified=_CN, Traditional=_TW
 # When the user picks an (XX_YY) locale in Settings / Main Window and restarts Engauge, Engauge follows these steps to load:
 #   1) 'engauge_XX_YY' is loaded if it exists and locale loading finishes
 #   2) 'engauge_XX' is loaded if it exists and step 1 failed, and locale loading finishes
@@ -1282,4 +1282,5 @@ TRANSLATIONS = translations/engauge_ar.ts \
                translations/engauge_nl.ts \
                translations/engauge_pt.ts \
                translations/engauge_ru.ts \
-               translations/engauge_zh.ts
+               translations/engauge_zh_CN.ts \
+               translations/engauge_zh_TW.ts

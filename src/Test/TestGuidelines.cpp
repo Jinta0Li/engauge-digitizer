@@ -6,10 +6,12 @@
 #include "Logger.h"
 #include "MainWindow.h"
 #include <QApplication>
+#include <QDir>
 #include <QSettings>
 #include <QTextStream>
 #include <QThread>
 #include <QtTest/QtTest>
+#include <iostream>
 #include "Settings.h"
 #include "Test/TestGuidelines.h"
 
@@ -17,7 +19,19 @@ using namespace std;
 
 const int NUMBER_TESTS = 3;
 
-QTEST_MAIN (TestGuidelines)
+int main (int argc, char *argv[])
+{
+  QSettings::setDefaultFormat (QSettings::IniFormat);
+  QSettings::setPath (QSettings::IniFormat,
+                      QSettings::UserScope,
+                      QDir::temp ().filePath ("engauge-digitizer-tests/TestGuidelines"));
+
+  QApplication app (argc, argv);
+  app.setAttribute (Qt::AA_Use96Dpi, true);
+  TestGuidelines testGuidelines;
+
+  return QTest::qExec (&testGuidelines, argc, argv);
+}
 
 // TestGuidelines::Result
 TestGuidelines::Result::Result (bool pass,

@@ -7,6 +7,7 @@
 #include "DlgImportAdvanced.h"
 #include "Logger.h"
 #include "MainWindow.h"
+#include <QCoreApplication>
 #include <QGridLayout>
 #include <QLabel>
 #include <QRadioButton>
@@ -15,7 +16,7 @@
 const int MINIMUM_DIALOG_WIDTH_COORDS = 800;
 
 DlgImportAdvanced::DlgImportAdvanced(MainWindow &mainWindow) :
-  DlgSettingsAbstractBase (tr ("Import Advanced"),
+  DlgSettingsAbstractBase (QCoreApplication::translate ("CreateToolBars", "Coordinate System"),
                            "DlgImportAdvanced",
                            mainWindow)
 {
@@ -137,4 +138,3 @@ void DlgImportAdvanced::slotCoordSystemCount (const QString &)
 {
   LOG4CPP_INFO_S ((*mainCat)) << "DlgCoordSystem::slotImportAdvanced";
 }
-

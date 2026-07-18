@@ -35,3 +35,13 @@ snapcraft.yaml
 stage
 transifex_downloads
 bin/engauge.ilk
+
+# Local Windows build toolchain, dependencies, and generated artifacts
+/.build-deps/
+/.build-tools/
+/.portable-test-bilingual/
+/build-windows/
+/cmake-build/
+/CMakeUserPresets.json
+/dist/
+/aqtinstall.log

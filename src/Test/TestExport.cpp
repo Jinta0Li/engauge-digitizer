@@ -9,15 +9,16 @@
 #include "MainWindow.h"
 #include "MainWindowModel.h"
 #include "PointStyle.h"
+#include <QApplication>
+#include <QDir>
 #include <QImage>
+#include <QSettings>
 #include <qmath.h>
 #include <QtTest/QtTest>
 #include "Spline.h"
 #include "SplinePair.h"
 #include "Test/TestExport.h"
 #include "Transformation.h"
-
-QTEST_MAIN (TestExport)
 
 using namespace std;
 
@@ -35,11 +36,26 @@ const QString NO_EXTRACT_IMAGE_EXTENSION;
 const bool DEBUG_FLAG = false;
 const QStringList NO_LOAD_STARTUP_FILES;
 const QStringList NO_COMMAND_LINE;
-const QString STARTUP_DIG_LOWER_CASE ("/tmp/export_only.dig");
-const QString STARTUP_DIG_UPPER_CASE ("/tmp/export_only.DIG");
+const QString TEST_SETTINGS_DIRECTORY (QDir::temp ().filePath ("engauge-digitizer-tests/TestExport"));
+const QString STARTUP_DIG_LOWER_CASE (QDir (TEST_SETTINGS_DIRECTORY).filePath ("export_only.dig"));
+const QString STARTUP_DIG_UPPER_CASE (QDir (TEST_SETTINGS_DIRECTORY).filePath ("export_only.DIG"));
 const QStringList ONE_LOAD_STARTUP_FILE_LOWER_CASE (STARTUP_DIG_LOWER_CASE);
 const QStringList ONE_LOAD_STARTUP_FILE_UPPER_CASE (STARTUP_DIG_UPPER_CASE);
 const bool REGRESSION_IMPORT = true;
+
+int main (int argc, char *argv[])
+{
+  QSettings::setDefaultFormat (QSettings::IniFormat);
+  QSettings::setPath (QSettings::IniFormat,
+                      QSettings::UserScope,
+                      TEST_SETTINGS_DIRECTORY);
+
+  QApplication app (argc, argv);
+  app.setAttribute (Qt::AA_Use96Dpi, true);
+  TestExport testExport;
+
+  return QTest::qExec (&testExport, argc, argv);
+}
 
 TestExport::TestExport(QObject *parent) :
   QObject(parent),

@@ -1,0 +1,191 @@
+name: Build Windows release
+
+on:
+  push:
+    tags:
+      - "v*.*.*.*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  windows-release:
+    name: Build, install-test, and draft release
+    runs-on: windows-2022
+    timeout-minutes: 60
+    env:
+      QT_VERSION: 6.8.3
+      QT_ARCH: win64_msvc2022_64
+      INNO_VERSION: 6.7.3
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate release version
+        shell: pwsh
+        run: |
+          $cmakeText = Get-Content CMakeLists.txt -Raw
+          $versionMatch = [regex]::Match(
+            $cmakeText,
+            'project\(EngaugeDigitizer VERSION (\d+\.\d+\.\d+\.\d+) LANGUAGES CXX\)')
+          if (-not $versionMatch.Success) {
+            throw "CMake project version was not found."
+          }
+          $version = $versionMatch.Groups[1].Value
+          if ($env:GITHUB_REF_NAME -ne "v$version") {
+            throw "Tag $env:GITHUB_REF_NAME does not match source version $version."
+          }
+
+          $sourceVersion = Get-Content src\util\Version.cpp -Raw
+          if ($sourceVersion -notmatch
+              "VERSION_NUMBER\s*=\s*`"$([regex]::Escape($version))`"") {
+            throw "Version.cpp does not match $version."
+          }
+          $installerDefinition = Get-Content dev\windows\engauge_qt6.iss -Raw
+          if ($installerDefinition -notmatch
+              "#define MyAppVersion `"$([regex]::Escape($version))`"") {
+            throw "Inno Setup default version does not match $version."
+          }
+
+          "ENGAUGE_VERSION=$version" | Out-File `
+            -FilePath $env:GITHUB_ENV `
+            -Encoding utf8 `
+            -Append
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Qt
+        shell: pwsh
+        run: |
+          python -m pip install --disable-pip-version-check aqtinstall==3.3.0
+          python -m aqt install-qt `
+            windows `
+            desktop `
+            $env:QT_VERSION `
+            $env:QT_ARCH `
+            --outputdir "$env:RUNNER_TEMP\Qt"
+
+      - name: Prepare FFTW 3.3.5 baseline
+        shell: pwsh
+        run: |
+          $fftwRoot = "$env:RUNNER_TEMP\fftw"
+          $rawRoot = "$env:RUNNER_TEMP\fftw-raw"
+          Expand-Archive dev\windows\appveyor\fftw-3.3.5-dll64.zip $rawRoot
+          New-Item -ItemType Directory -Force `
+            "$fftwRoot\include", `
+            "$fftwRoot\lib" | Out-Null
+          Copy-Item "$rawRoot\fftw3.h" "$fftwRoot\include\fftw3.h"
+          Copy-Item `
+            "$rawRoot\libfftw3-3.def" `
+            "$fftwRoot\lib\libfftw3-3.def"
+          Copy-Item `
+            "$rawRoot\libfftw3-3.dll" `
+            "$fftwRoot\lib\libfftw3-3.dll"
+
+      - name: Install verified Inno Setup compiler
+        shell: pwsh
+        run: |
+          $installer = "$env:RUNNER_TEMP\innosetup-$env:INNO_VERSION.exe"
+          $downloadUrl = "https://github.com/jrsoftware/issrc/releases/download/is-6_7_3/innosetup-$env:INNO_VERSION.exe"
+          Invoke-WebRequest -Uri $downloadUrl -OutFile $installer
+
+          $signature = Get-AuthenticodeSignature $installer
+          if ($signature.Status -ne 'Valid' -or
+              $signature.SignerCertificate.Subject -notlike '*Pyrsys B.V.*') {
+            throw "Inno Setup Authenticode signature validation failed."
+          }
+
+          $innoRoot = "$env:RUNNER_TEMP\InnoSetup-$env:INNO_VERSION"
+          $arguments = @(
+            '/PORTABLE=1',
+            '/VERYSILENT',
+            '/CURRENTUSER',
+            '/SUPPRESSMSGBOXES',
+            '/NORESTART',
+            '/SP-',
+            "/DIR=`"$innoRoot`""
+          )
+          $process = Start-Process `
+            -FilePath $installer `
+            -ArgumentList $arguments `
+            -Wait `
+            -PassThru
+          if ($process.ExitCode -ne 0) {
+            throw "Inno Setup installation failed with code $($process.ExitCode)."
+          }
+          if (-not (Test-Path "$innoRoot\ISCC.exe" -PathType Leaf)) {
+            throw "Inno Setup compiler was not installed."
+          }
+          "INNO_COMPILER=$innoRoot\ISCC.exe" | Out-File `
+            -FilePath $env:GITHUB_ENV `
+            -Encoding utf8 `
+            -Append
+
+      - name: Build and package release
+        shell: pwsh
+        run: |
+          .\dev\windows\package_cmake_qt6.ps1 `
+            -QtRoot "$env:RUNNER_TEMP\Qt\$env:QT_VERSION\msvc2022_64" `
+            -FftwRoot "$env:RUNNER_TEMP\fftw" `
+            -Version $env:ENGAUGE_VERSION `
+            -CreateInstaller `
+            -InnoCompiler $env:INNO_COMPILER
+
+      - name: Test silent install, launch, and uninstall
+        shell: pwsh
+        run: |
+          .\dev\windows\test_installer.ps1 `
+            -SetupExecutable "dist\Engauge-Digitizer-$env:ENGAUGE_VERSION-Multilingual-Windows-x64-Setup.exe"
+
+      - name: Create SHA-256 manifest
+        shell: pwsh
+        run: |
+          $assetNames = @(
+            "Engauge-Digitizer-$env:ENGAUGE_VERSION-Multilingual-Windows-x64-Setup.exe",
+            "Engauge-Digitizer-$env:ENGAUGE_VERSION-Multilingual-Windows-x64-Portable.zip"
+          )
+          $hashLines = foreach ($assetName in $assetNames) {
+            $hash = Get-FileHash "dist\$assetName" -Algorithm SHA256
+            "$($hash.Hash.ToLowerInvariant()) *$assetName"
+          }
+          [System.IO.File]::WriteAllLines(
+            (Join-Path $env:GITHUB_WORKSPACE "dist\SHA256SUMS.txt"),
+            $hashLines,
+            [System.Text.UTF8Encoding]::new($false))
+
+      - name: Upload verified release bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: Engauge-Digitizer-${{ github.ref_name }}-Windows-x64
+          path: |
+            dist/*-Multilingual-Windows-x64-Setup.exe
+            dist/*-Multilingual-Windows-x64-Portable.zip
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+
+      - name: Create draft GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $assets = @(
+            "dist\Engauge-Digitizer-$env:ENGAUGE_VERSION-Multilingual-Windows-x64-Setup.exe",
+            "dist\Engauge-Digitizer-$env:ENGAUGE_VERSION-Multilingual-Windows-x64-Portable.zip",
+            "dist\SHA256SUMS.txt"
+          )
+          gh release create `
+            $env:GITHUB_REF_NAME `
+            @assets `
+            --draft `
+            --verify-tag `
+            --generate-notes `
+            --title "Engauge Digitizer $env:ENGAUGE_VERSION"

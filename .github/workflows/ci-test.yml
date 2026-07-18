@@ -1,4 +1,4 @@
-name: CI build test
+name: CI build and test
 
 on:
   push:
@@ -6,26 +6,245 @@ on:
       - master
       - gh-actions-test
   pull_request:
+  workflow_dispatch:
 
-env:
-  DISPLAY: ':99.0'
-  ENGAUGE_EXECUTABLE: '../bin/Engauge'
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  'ci-build':
-    runs-on: ubuntu-latest
+  linux-qmake:
+    name: Linux / Qt 6 / qmake + CMake tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      ENGAUGE_EXECUTABLE: ../bin/Engauge
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-      - run: lsb_release -a
-      - run: sudo apt-get update
-      - run: sudo apt-get install --yes --no-install-recommends qt6-base-dev qt6-tools-dev liblog4cpp5-dev libfftw3-dev xvfb python3 python3-pip python3-lxml python3-numpy python3-pandas gdb libpoppler-qt6-dev qt6-documentation-tools
-      - run: Xvfb :99 &
-      - run: sleep 5s
-      - run: qmake6 engauge.pro
-      - run: make
-      - run: cd help && ./build.bash && cd ..
-      - run: cd src && ./build_and_run_all_gui_tests && cd ..
-      - run: cd test && ./DumpGraphAndScreenCoordinates_test.py && cd ..
-      - run: cd src && ./build_and_run_all_cli_tests && cd ..
-      - run: file bin/Engauge*
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install build and test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends \
+            cmake \
+            libfftw3-dev \
+            liblog4cpp5-dev \
+            ninja-build \
+            python3-lxml \
+            python3-numpy \
+            python3-pandas \
+            qt6-base-dev \
+            qt6-documentation-tools \
+            qt6-l10n-tools \
+            qt6-tools-dev \
+            xvfb
+
+      - name: Build application
+        run: |
+          qmake6 engauge.pro
+          make --jobs "$(nproc)"
+
+      - name: Build help collection
+        working-directory: help
+        run: ./build.bash
+
+      - name: Run GUI regression tests
+        run: xvfb-run --auto-servernum bash -c 'cd src && ./build_and_run_all_gui_tests'
+
+      - name: Run coordinate regression test
+        working-directory: test
+        run: python3 ./DumpGraphAndScreenCoordinates_test.py
+
+      - name: Run command-line unit tests
+        working-directory: src
+        run: ./build_and_run_all_cli_tests
+
+      - name: Verify executable
+        run: file bin/Engauge
+
+      - name: Build parallel CMake application target
+        run: |
+          cmake --preset linux-release
+          cmake --build --preset linux-release
+
+      - name: Run CMake unit tests
+        run: xvfb-run --auto-servernum ctest --preset linux-release
+
+      - name: Verify CMake products
+        run: |
+          file cmake-build/linux-release/bin/Engauge
+          test "$(find cmake-build/linux-release/bin/translations -maxdepth 1 -name 'engauge_*.qm' | wc -l)" -eq 18
+          test -f cmake-build/linux-release/bin/documentation/engauge.qch
+          test -f cmake-build/linux-release/bin/documentation/engauge.qhc
+
+      - name: Verify CMake install layout
+        run: |
+          cmake --install cmake-build/linux-release --prefix "$RUNNER_TEMP/engauge-install"
+          file "$RUNNER_TEMP/engauge-install/bin/Engauge"
+          test "$(find "$RUNNER_TEMP/engauge-install/bin/translations" -maxdepth 1 -name 'engauge_*.qm' | wc -l)" -eq 18
+          test -f "$RUNNER_TEMP/engauge-install/share/doc/engauge-digitizer/engauge.qch"
+          test -f "$RUNNER_TEMP/engauge-install/share/doc/engauge-digitizer/engauge.qhc"
+
+  windows-qmake:
+    name: Windows / Qt 6.8.3 / qmake + CMake
+    runs-on: windows-2022
+    timeout-minutes: 45
+    env:
+      QT_VERSION: 6.8.3
+      QT_ARCH: win64_msvc2022_64
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Qt
+        shell: pwsh
+        run: |
+          python -m pip install --disable-pip-version-check aqtinstall==3.3.0
+          python -m aqt install-qt windows desktop $env:QT_VERSION $env:QT_ARCH --outputdir "$env:RUNNER_TEMP\Qt"
+
+      - name: Prepare FFTW 3.3.5 baseline
+        shell: pwsh
+        run: |
+          $fftwRoot = "$env:RUNNER_TEMP\fftw"
+          $rawRoot = "$env:RUNNER_TEMP\fftw-raw"
+          Expand-Archive dev/windows/appveyor/fftw-3.3.5-dll64.zip $rawRoot
+          New-Item -ItemType Directory -Force "$fftwRoot\include", "$fftwRoot\lib" | Out-Null
+          Copy-Item "$rawRoot\fftw3.h" "$fftwRoot\include\fftw3.h"
+          Copy-Item "$rawRoot\libfftw3-3.def" "$fftwRoot\lib\libfftw3-3.def"
+          Copy-Item "$rawRoot\libfftw3-3.dll" "$fftwRoot\lib\libfftw3-3.dll"
+
+      - name: Build application and translations
+        shell: pwsh
+        run: |
+          .\dev\windows\build_qmake_qt6.ps1 `
+            -QtRoot "$env:RUNNER_TEMP\Qt\$env:QT_VERSION\msvc2022_64" `
+            -FftwRoot "$env:RUNNER_TEMP\fftw" `
+            -BuildDirectory "$env:GITHUB_WORKSPACE\build-windows-ci" `
+            -CompileTranslations
+
+      - name: Build parallel CMake application target
+        shell: pwsh
+        run: |
+          $env:QT_ROOT = "$env:RUNNER_TEMP\Qt\$env:QT_VERSION\msvc2022_64"
+          $env:FFTW_HOME = "$env:RUNNER_TEMP\fftw"
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
+          $visualStudioRoot = & $vswhere -latest -products * `
+            -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
+            -property installationPath
+          & (Join-Path $visualStudioRoot "Common7\Tools\Launch-VsDevShell.ps1") `
+            -Arch amd64 -HostArch amd64 -SkipAutomaticLocation
+          $env:Path = "$env:QT_ROOT\bin;$env:Path"
+          $env:QT_QPA_PLATFORM = "offscreen"
+          cmake --preset windows-msvc-release
+          cmake --build --preset windows-msvc-release
+          ctest --preset windows-msvc-release
+
+      - name: Verify build products
+        shell: pwsh
+        run: |
+          Get-Item build-windows-ci\bin\Engauge.exe
+          $expectedTranslations = @(
+            'ar', 'cs', 'de', 'en', 'es', 'fa_IR', 'fr', 'hi', 'it',
+            'ja', 'kk', 'ko', 'nb', 'nl', 'pt', 'ru', 'zh_CN', 'zh_TW'
+          )
+          $missingTranslations = $expectedTranslations | Where-Object {
+            -not (Test-Path "translations\engauge_$_.qm")
+          }
+          if ($missingTranslations) {
+            throw "Missing compiled translations: $($missingTranslations -join ', ')."
+          }
+
+          Get-Item cmake-build\windows-msvc-release\bin\Engauge.exe
+          Get-Item cmake-build\windows-msvc-release\bin\libfftw3-3.dll
+          $cmakeTranslations = Get-ChildItem `
+            cmake-build\windows-msvc-release\bin\translations\engauge_*.qm
+          if ($cmakeTranslations.Count -ne 18) {
+            throw "Expected 18 CMake translation catalogs, found $($cmakeTranslations.Count)."
+          }
+
+          Get-Item cmake-build\windows-msvc-release\bin\documentation\engauge.qch
+          Get-Item cmake-build\windows-msvc-release\bin\documentation\engauge.qhc
+
+      - name: Assemble and verify portable deployment
+        shell: pwsh
+        run: |
+          $portableRoot = [System.IO.Path]::GetFullPath(
+            (Join-Path $env:RUNNER_TEMP 'Engauge Digitizer Multilingual'))
+          $tempPrefix = [System.IO.Path]::GetFullPath($env:RUNNER_TEMP).TrimEnd('\') + '\'
+          if (-not $portableRoot.StartsWith(
+              $tempPrefix,
+              [System.StringComparison]::OrdinalIgnoreCase)) {
+            throw "Portable staging path escaped the runner temp directory."
+          }
+          if (Test-Path $portableRoot) {
+            Remove-Item -LiteralPath $portableRoot -Recurse -Force
+          }
+
+          cmake --install cmake-build\windows-msvc-release `
+            --prefix $portableRoot `
+            --config Release
+          & "$env:QT_ROOT\bin\windeployqt.exe" `
+            --release `
+            --compiler-runtime `
+            --dir $portableRoot `
+            "$portableRoot\Engauge.exe"
+          if ($LASTEXITCODE -ne 0) {
+            throw "windeployqt failed with exit code $LASTEXITCODE."
+          }
+
+          $requiredProducts = @(
+            'Engauge.exe',
+            'libfftw3-3.dll',
+            'Qt6Core.dll',
+            'Qt6Help.dll',
+            'Qt6Widgets.dll',
+            'platforms\qwindows.dll',
+            'documentation\engauge.qch',
+            'documentation\engauge.qhc',
+            'translations\qt_zh_CN.qm',
+            'translations\qt_zh_TW.qm',
+            'LICENSE'
+          )
+          $missingProducts = $requiredProducts | Where-Object {
+            -not (Test-Path (Join-Path $portableRoot $_) -PathType Leaf)
+          }
+          if ($missingProducts) {
+            throw "Missing portable products: $($missingProducts -join ', ')."
+          }
+
+          foreach ($qtTranslation in @('qt_zh_CN.qm', 'qt_zh_TW.qm')) {
+            $qtTranslationFile = Get-Item `
+              "$portableRoot\translations\$qtTranslation"
+            if ($qtTranslationFile.Length -lt 100000) {
+              throw "Qt translation was not fully deployed: $qtTranslation"
+            }
+          }
+
+          $portableTranslations = Get-ChildItem `
+            "$portableRoot\translations\engauge_*.qm"
+          if ($portableTranslations.Count -ne 18) {
+            throw "Expected 18 portable translations, found $($portableTranslations.Count)."
+          }
+
+          $archive = Join-Path $env:RUNNER_TEMP `
+            'Engauge-Digitizer-12.9.1.2-Multilingual-Windows-x64-Portable.zip'
+          Compress-Archive `
+            -Path (Join-Path $portableRoot '*') `
+            -DestinationPath $archive `
+            -CompressionLevel Optimal
+
+      - name: Upload Windows portable package
+        uses: actions/upload-artifact@v4
+        with:
+          name: Engauge-Digitizer-12.9.1.2-Multilingual-Windows-x64-Portable
+          path: ${{ runner.temp }}/Engauge-Digitizer-12.9.1.2-Multilingual-Windows-x64-Portable.zip
+          if-no-files-found: error
