@@ -352,6 +352,7 @@ try {
         Invoke-Checked $iscc @(
             "/DMyAppVersion=$Version",
             "/DMyAppFileVersion=$windowsFileVersion",
+            "/DMyAppSourceDir=$stageDirectoryPath",
             (Join-Path $repositoryRoot "dev\windows\engauge_qt6.iss")
         )
         $setupExecutable = Join-Path $distDirectoryPath `

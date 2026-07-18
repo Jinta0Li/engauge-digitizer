@@ -5,6 +5,9 @@
 #ifndef MyAppFileVersion
 #define MyAppFileVersion "12.10.0.0"
 #endif
+#ifndef MyAppSourceDir
+#define MyAppSourceDir "..\..\dist\Engauge Digitizer Multilingual"
+#endif
 #define MyAppPublisher "Engauge Digitizer Community Build"
 #define MyAppExeName "Engauge.exe"
 
@@ -43,8 +46,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional shortcuts:"; Flags: unchecked
 
 [Files]
-Source: "..\..\dist\Engauge Digitizer Multilingual\*"; DestDir: "{app}"; Excludes: "vc_redist.x64.exe"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\..\dist\Engauge Digitizer Multilingual\vc_redist.x64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
+Source: "{#MyAppSourceDir}\*"; DestDir: "{app}"; Excludes: "vc_redist.x64.exe"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#MyAppSourceDir}\vc_redist.x64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"
